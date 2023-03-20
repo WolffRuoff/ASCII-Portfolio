@@ -1,4 +1,3 @@
-import "./App.css";
 import { useState, useEffect } from "react";
 import Header from "./components/header";
 import Photo from "./components/photo";
