@@ -63,6 +63,7 @@ function App() {
     if (handleSizeChange && longestLine < width / 2) {
       handleFontSize(1);
     }
+    newLines.push("")
     return newLines.join("\n");
   }
 
@@ -73,14 +74,14 @@ function App() {
       (width - 1 - precurse.length - lines1[0].length - lines2[0].length) / 3;
     if (newWidth <= 0) {
       lines1.push(" ");
-      return [AddSpaces(lines1),(AddSpaces(lines2))].join("\n");
+      return AddSpaces(lines1).concat(AddSpaces(lines2));
     }
     const gap = " ".repeat(newWidth);
     const txt = precurse + gap + lines1[0] + gap + lines2[0];
     const afterLength = width - txt.length - afterCurse.length;
     if (afterLength <= 0) {
       lines1.push(" ");
-      return [AddSpaces(lines1),AddSpaces(lines2)].join("\n");
+      return AddSpaces(lines1).concat(AddSpaces(lines2));
     }
     newLines.push(txt + " ".repeat(afterLength) + afterCurse);
 
@@ -101,6 +102,7 @@ function App() {
       const txt = precurse + gap + lines1[i] + gap + lines2[i];
       newLines.push(txt + " ".repeat(afterLength) + afterCurse);
     }
+    newLines.push("")
     return newLines.join("\n");
   }
 
