@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Header from "./components/header";
 import Photo from "./components/photo";
 import BlankLines from "./components/BlankLines";
+import Rocket from "./components/Rocket";
 
 function App() {
   var longestLine = 0;
@@ -65,9 +66,24 @@ function App() {
     return newLines.join("\n");
   }
 
-  function AddSpacesForTwo(lines1, lines2, handleSizeChange = false) {
+  function AddSpacesForTwo(lines1, lines2) {
     const newLines = [];
-    // Make the two sections have equal lines
+    // Make sure each lines only has 1 length
+    const newWidth =
+      (width - 1 - precurse.length - lines1[0].length - lines2[0].length) / 3;
+    if (newWidth <= 0) {
+      lines1.push(" ");
+      return [AddSpaces(lines1),(AddSpaces(lines2))].join("\n");
+    }
+    const gap = " ".repeat(newWidth);
+    const txt = precurse + gap + lines1[0] + gap + lines2[0];
+    const afterLength = width - txt.length - afterCurse.length;
+    if (afterLength <= 0) {
+      lines1.push(" ");
+      return [AddSpaces(lines1),AddSpaces(lines2)].join("\n");
+    }
+    newLines.push(txt + " ".repeat(afterLength) + afterCurse);
+
     if (lines1.length > lines2.length) {
       const filler = " ".repeat(lines2[0].length);
       while (lines1.length > lines2.length) {
@@ -81,27 +97,9 @@ function App() {
       }
     }
 
-    for (var i = 0; i < lines1.length; i++) {
-      const newWidth =
-        (width - 1 - precurse.length - lines1[i].length - lines2[i].length) / 3;
-      if (handleSizeChange && newWidth <= 0) {
-        handleFontSize(-1);
-        return "";
-      }
-      const gap = " ".repeat(newWidth);
+    for (var i = 1; i < lines1.length; i++) {
       const txt = precurse + gap + lines1[i] + gap + lines2[i];
-      const afterLength = width - txt.length - afterCurse.length;
-      if (handleSizeChange && afterLength <= 0) {
-        handleFontSize(-1);
-        return "";
-      }
       newLines.push(txt + " ".repeat(afterLength) + afterCurse);
-      if (lines1[i].length + lines2[i].length > longestLine) {
-        longestLine = lines1[i].length + lines2[i].length;
-      }
-    }
-    if (handleSizeChange && longestLine < width / 2) {
-      handleFontSize(1);
     }
     return newLines.join("\n");
   }
@@ -132,8 +130,14 @@ function App() {
             "This entire website is responsive and dynamically made with     ",
             "ASCII characters. Try resizing and copying the page. I hope you ",
             "enjoy!                                                          ",
+            "                                                                ",
+            "To tell you a bit more about me, I have of Master of Science    ",
+            "from Columbia University and a Bachelor of Science in Computer  ",
+            "Science and Business Administration from Muhlenberg College. I'm",
+            "a third degree Black-Belt in karate and enjoy singing, playing  ",
+            "boardgames, coding, and bookbinding in my free time.            "
           ],
-          ["goodbye"]
+          Rocket()
         )}
       </pre>
     </div>
