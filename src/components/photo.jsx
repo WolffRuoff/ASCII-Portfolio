@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const Photo = ({ width, fontSize, AddSpaces }) => {
+const Photo = ({ width, AddSpaces }) => {
   const [finishedPhoto, setPhoto ]= useState("")
   useEffect(() => {
     setPhoto(AddSpaces([
@@ -53,8 +53,8 @@ const Photo = ({ width, fontSize, AddSpaces }) => {
       `.........:........... ............................................::.....:::.::::.:-=-::+-:--:.-+===`,
       `........::........... ........................... .....:...:....:.::...:.::::--:..:-=-::+----..=+=--`,
       `........:::.............................:............  ...................::--::.::-=-::+=--:..++=--`,
-    ], true));
-  }, [width, fontSize]);
+    ], true, true));
+  }, [width, AddSpaces]);
   return (
     <>
       {finishedPhoto}

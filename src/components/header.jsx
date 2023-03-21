@@ -1,5 +1,4 @@
 import "./styles.css";
-const { PreNameSpaces } = require("../Helpers");
 
 const Header = ({ width, AddSpaces }) => {
   // const headBarRelative = "-".repeat(100 / (1 * (1229 / 2048)));
