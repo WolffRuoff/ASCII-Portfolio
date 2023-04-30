@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-const Photo = ({ width, AddSpaces }) => {
+const Photo = ({ width, helpers }) => {
   const [finishedPhoto, setPhoto ]= useState("")
   useEffect(() => {
-    setPhoto(AddSpaces([
+    setPhoto(helpers.AddSpaces([
       `                                                                                                    `,
       `                                          .-==+**++=-.                                               `,
       `                                      :+#@@@@@@@@@@@@@%#=.                                          `,
@@ -54,7 +54,7 @@ const Photo = ({ width, AddSpaces }) => {
       `........::........... ........................... .....:...:....:.::...:.::::--:..:-=-::+----..=+=--`,
       `........:::.............................:............  ...................::--::.::-=-::+=--:..++=--`,
     ], true, true));
-  }, [width, AddSpaces]);
+  }, [width, helpers]);
   return (
     <>
       {finishedPhoto}

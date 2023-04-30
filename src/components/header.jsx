@@ -1,16 +1,12 @@
-import "./styles.css";
-
-const Header = ({ width, AddSpaces }) => {
-  // const headBarRelative = "-".repeat(100 / (1 * (1229 / 2048)));
+const Header = ({ width, helpers }) => {
   const headBarAbsolute = `   ` + "_".repeat(width - 6);
-  // const preNameSpace = " ".repeat((width - 1) * 0.33);
   return (
     <>
       {headBarAbsolute}
       <br />
       {"  |" + headBarAbsolute.slice(3) + "|  "}
       <br />
-      {AddSpaces(
+      {helpers.AddSpaces(
         [
           `_______ __   __                  ______               ___   ___ `,
           `|    ___|  |_|  |--.---.-.-----. |   __ \\.--.--.-----.'  _|.'  _| `,
