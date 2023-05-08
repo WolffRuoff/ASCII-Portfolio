@@ -18,7 +18,7 @@ export class Helpers {
     });
   }
 
-  AddSpaces(lines, handleShrink = false, handleGrow = false) {
+  AddSpaces(lines, handleShrink = false, handleGrow = false, combine = true) {
     const newLines = [];
     for (var i = 0; i < lines.length; i++) {
       const newWidth =
@@ -28,29 +28,41 @@ export class Helpers {
         console.log(
           `1Shrinking fontsize from ${this.sizing.fontSize} with ${newWidth}`
         );
-        return " ";
+        return "";
       }
-      const txt = this.precurse + " ".repeat(newWidth) + lines[i];
+      const newPrecurs = this.precurse + " ".repeat(newWidth);
       const afterLength =
-        this.sizing.width - txt.length - this.afterCurse.length;
+        this.sizing.width -
+        (newPrecurs.length + lines[i].length) -
+        this.afterCurse.length;
       if (handleShrink && afterLength < 0) {
         this.handleFontSize(-1);
         console.log(
           `2Shrinking fontsize from ${this.sizing.fontSize} with ${newWidth}`
         );
-        return " ";
+        return "";
       }
-      newLines.push(txt + " ".repeat(afterLength) + this.afterCurse);
+      if (combine) {
+        newLines.push(
+          newPrecurs + lines[i] + " ".repeat(afterLength) + this.afterCurse
+        );
+      } else {
+        newLines.push([
+          newPrecurs,
+          lines[i],
+          " ".repeat(afterLength) + this.afterCurse,
+        ]);
+      }
     }
     if (handleGrow && this.longestLine < this.sizing.width / 2) {
       console.log(this.longestLine);
       this.handleFontSize(1);
     }
-    newLines.push("");
-    return newLines.join("\n");
+    if (combine) newLines.push("");
+    return combine ? newLines.join("\n") : newLines;
   }
 
-  AddSpacesForTwo(lines1, lines2) {
+  AddSpacesForTwo(lines1, lines2, combine = true) {
     const newLines = [];
     // Make sure each lines only has 1 length
     const newWidth =
@@ -62,37 +74,66 @@ export class Helpers {
       3;
     // If window is two small default to only 1 column
     if (newWidth <= 1 || window.innerWidth < 500) {
-      lines1.push(" ");
-      return this.AddSpaces(lines1, true).concat(this.AddSpaces(lines2, true));
+      if (combine) lines1.push(" ");
+      return this.AddSpaces(lines1, true, false, combine).concat(
+        this.AddSpaces(lines2, true, false, combine)
+      );
     }
-
     const gap = " ".repeat(newWidth);
     const txt = this.precurse + gap + lines1[0] + gap + lines2[0];
     const afterLength = this.sizing.width - txt.length - this.afterCurse.length;
     if (afterLength <= 0) {
-      lines1.push(" ");
-      return this.AddSpaces(lines1, true).concat(this.AddSpaces(lines2, true));
+      if (combine) lines1.push(" ");
+      return this.AddSpaces(lines1, true, false, combine).concat(
+        this.AddSpaces(lines2, true, false, combine)
+      );
     }
-    newLines.push(txt + " ".repeat(afterLength) + this.afterCurse);
 
     if (lines1.length > lines2.length) {
       const filler = " ".repeat(lines2[0].length);
       while (lines1.length > lines2.length) {
-        console.log("Growing");
-        lines2.push(filler);
+        if (lines2.length % 2) {
+          lines2.push(filler);
+        }
+        else {
+          lines2.unshift(filler)
+        }
       }
     } else if (lines1.length < lines2.length) {
       const filler = " ".repeat(lines1[0].length);
       while (lines1.length < lines2.length) {
-        lines1.push(filler);
+        if (lines1.length % 2) {
+          lines1.push(filler);
+        }
+        else {
+          lines1.unshift(filler)
+        }
       }
     }
 
-    for (var i = 1; i < lines1.length; i++) {
-      const txt = this.precurse + gap + lines1[i] + gap + lines2[i];
-      newLines.push(txt + " ".repeat(afterLength) + this.afterCurse);
+    for (var i = 0; i < lines1.length; i++) {
+      let txt;
+      if (combine) {
+        txt =
+          this.precurse +
+          gap +
+          lines1[i] +
+          gap +
+          lines2[i] +
+          " ".repeat(afterLength) +
+          this.afterCurse;
+      } else {
+        txt = [
+          this.precurse + gap,
+          lines1[i],
+          gap,
+          lines2[i],
+          " ".repeat(afterLength) + this.afterCurse,
+        ];
+      }
+      newLines.push(txt);
     }
-    newLines.push("");
-    return newLines.join("\n");
+    if (combine) newLines.push("");
+    return combine ? newLines.join("\n") : newLines;
   }
 }

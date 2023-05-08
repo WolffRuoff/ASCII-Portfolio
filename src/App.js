@@ -4,6 +4,10 @@ import Photo from "./components/Photo";
 import BlankLines from "./components/BlankLines";
 import Rocket from "./components/Rocket";
 import { Helpers } from "./Helpers";
+import Button from "./components/Button";
+import { GithubName } from "./ascii/GithubName";
+import { GithubCat } from "./ascii/GithubCat";
+
 
 function App() {
   var longestLine = 101;
@@ -84,6 +88,20 @@ function App() {
           ],
           Rocket()
         )}
+        <BlankLines
+          width={sizing.width}
+          amount={3}
+          precurs={precurse}
+          aftercurs={afterCurse}
+        />
+        <br />
+        <Button
+          helpers={helpers}
+          lines1={GithubCat}
+          url1="https://github.com/WolffRuoff"
+          lines2={GithubName}
+          url2="https://github.com/WolffRuoff"
+        />
       </pre>
     </div>
   );
