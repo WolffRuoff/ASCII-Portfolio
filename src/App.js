@@ -11,8 +11,8 @@ import { GithubCat } from "./ascii/GithubCat";
 
 function App() {
   var longestLine = 101;
-  const precurse = "  ||";
-  const afterCurse = "||  ";
+  const precursor = "  ||";
+  const afterCursor = "||  ";
 
   const [sizing, setSizing] = useState({
     fontSize: 12,
@@ -45,8 +45,8 @@ function App() {
     sizing,
     setSizing,
     longestLine,
-    precurse,
-    afterCurse
+    precursor,
+    afterCursor
   );
 
   return (
@@ -56,8 +56,8 @@ function App() {
         <BlankLines
           width={sizing.width}
           amount={3}
-          precurs={precurse}
-          aftercurs={afterCurse}
+          precursor={precursor}
+          afterCursor={afterCursor}
         />
         <br />
         <Photo
@@ -68,17 +68,17 @@ function App() {
         <BlankLines
           width={sizing.width}
           amount={3}
-          precurs={precurse}
-          aftercurs={afterCurse}
+          precursor={precursor}
+          afterCursor={afterCursor}
         />
         <br />
         {helpers.AddSpacesForTwo(
           [
             "Hello welcome to my page!                                       ",
-            "My name is Ethan Ruoff and I am a software engineer at Dow Jones",
-            "This entire website is responsive and dynamically made with     ",
-            "ASCII characters. Try resizing and copying the page. I hope you ",
-            "enjoy!                                                          ",
+            "My name is Ethan Ruoff and I am a senior software engineer at   ",
+            "Klaviyo. This entire website is responsive and dynamically made ",
+            "with ASCII characters. Try resizing and copying the page.       ",
+            "I hope you enjoy!                                               ",
             "                                                                ",
             "To tell you a bit more about me, I have of Master of Science    ",
             "from Columbia University and a Bachelor of Science in Computer  ",
@@ -91,8 +91,8 @@ function App() {
         <BlankLines
           width={sizing.width}
           amount={3}
-          precurs={precurse}
-          aftercurs={afterCurse}
+          precursor={precursor}
+          afterCursor={afterCursor}
         />
         <br />
         <Button

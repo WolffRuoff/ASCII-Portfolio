@@ -1,6 +1,6 @@
-const BlankLines = ({ width, amount, precurs, aftercurs }) => {
-  const numbOfSpaces = width - precurs.length - aftercurs.length;
-  const lines = (precurs + " ".repeat(numbOfSpaces) + aftercurs + "\n").repeat(amount).slice(0,-2);
+const BlankLines = ({ width, amount, precursor, afterCursor }) => {
+  const numbOfSpaces = width - precursor.length - afterCursor.length;
+  const lines = (precursor + " ".repeat(numbOfSpaces) + afterCursor + "\n").repeat(amount).slice(0,-2);
   return <>{lines}</>;
 };
 

@@ -1,10 +1,10 @@
 export class Helpers {
-  constructor(sizing, setSizing, longestLine, precurse, afterCurse) {
+  constructor(sizing, setSizing, longestLine, precursor, afterCursor) {
     this.sizing = sizing;
     this.setSizing = setSizing;
     this.longestLine = longestLine;
-    this.precurse = precurse;
-    this.afterCurse = afterCurse;
+    this.precursor = precursor;
+    this.afterCursor = afterCursor;
   }
 
   handleFontSize(change) {
@@ -22,7 +22,7 @@ export class Helpers {
     const newLines = [];
     for (var i = 0; i < lines.length; i++) {
       const newWidth =
-        (this.sizing.width - 1 - this.precurse.length - lines[i].length) / 2;
+        (this.sizing.width - 1 - this.precursor.length - lines[i].length) / 2;
       if (handleShrink && newWidth < 0) {
         this.handleFontSize(-1);
         console.log(
@@ -30,11 +30,11 @@ export class Helpers {
         );
         return "";
       }
-      const newPrecurs = this.precurse + " ".repeat(newWidth);
+      const newPrecursor = this.precursor + " ".repeat(newWidth);
       const afterLength =
         this.sizing.width -
-        (newPrecurs.length + lines[i].length) -
-        this.afterCurse.length;
+        (newPrecursor.length + lines[i].length) -
+        this.afterCursor.length;
       if (handleShrink && afterLength < 0) {
         this.handleFontSize(-1);
         console.log(
@@ -44,13 +44,13 @@ export class Helpers {
       }
       if (combine) {
         newLines.push(
-          newPrecurs + lines[i] + " ".repeat(afterLength) + this.afterCurse
+          newPrecursor + lines[i] + " ".repeat(afterLength) + this.afterCursor
         );
       } else {
         newLines.push([
-          newPrecurs,
+          newPrecursor,
           lines[i],
-          " ".repeat(afterLength) + this.afterCurse,
+          " ".repeat(afterLength) + this.afterCursor,
         ]);
       }
     }
@@ -68,7 +68,7 @@ export class Helpers {
     const newWidth =
       (this.sizing.width -
         1 -
-        this.precurse.length -
+        this.precursor.length -
         lines1[0].length -
         lines2[0].length) /
       3;
@@ -80,8 +80,8 @@ export class Helpers {
       );
     }
     const gap = " ".repeat(newWidth);
-    const txt = this.precurse + gap + lines1[0] + gap + lines2[0];
-    const afterLength = this.sizing.width - txt.length - this.afterCurse.length;
+    const txt = this.precursor + gap + lines1[0] + gap + lines2[0];
+    const afterLength = this.sizing.width - txt.length - this.afterCursor.length;
     if (afterLength <= 0) {
       if (combine) lines1.push(" ");
       return this.AddSpaces(lines1, true, false, combine).concat(
@@ -115,20 +115,20 @@ export class Helpers {
       let txt;
       if (combine) {
         txt =
-          this.precurse +
+          this.precursor +
           gap +
           lines1[i] +
           gap +
           lines2[i] +
           " ".repeat(afterLength) +
-          this.afterCurse;
+          this.afterCursor;
       } else {
         txt = [
-          this.precurse + gap,
+          this.precursor + gap,
           lines1[i],
           gap,
           lines2[i],
-          " ".repeat(afterLength) + this.afterCurse,
+          " ".repeat(afterLength) + this.afterCursor,
         ];
       }
       newLines.push(txt);
