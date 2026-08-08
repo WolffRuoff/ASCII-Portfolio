@@ -10,28 +10,46 @@ import { GithubName } from "./ascii/GithubName";
 import { GithubCat } from "./ascii/GithubCat";
 
 
+// Width of a monospace character relative to the font size (Courier New).
+const CHAR_ASPECT = 1229 / 2048;
+const MAX_FONT_SIZE = 12;
+const MIN_FONT_SIZE = 1;
+
+// Columns available at a given font size for the current window width.
+function widthForFont(fontSize) {
+  return window.innerWidth / (fontSize * CHAR_ASPECT);
+}
+
+// Largest font size (<= MAX) at which `requiredColumns` still fit on screen.
+// Clamped to [MIN, MAX], so width is always finite and never overflows.
+function fitFontSize(requiredColumns) {
+  const ideal = Math.floor(window.innerWidth / (requiredColumns * CHAR_ASPECT));
+  return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, ideal));
+}
+
 function App() {
-  var longestLine = 101;
+  const longestLine = 101;
   const precursor = "  ||";
   const afterCursor = "||  ";
+  // Widest block that can't wrap (the photo) plus its cursor margins.
+  const requiredColumns =
+    longestLine + precursor.length + afterCursor.length + 3;
 
-  const [sizing, setSizing] = useState({
-    fontSize: 12,
-    width: window.innerWidth / (12 * (1229 / 2048)),
+  const [sizing, setSizing] = useState(() => {
+    const fontSize = fitFontSize(requiredColumns);
+    return { fontSize, width: widthForFont(fontSize) };
   });
 
   useEffect(() => {
     function handleResize() {
-      setSizing({
-        fontSize: sizing.fontSize,
-        width: window.innerWidth / (sizing.fontSize * (1229 / 2048)),
-      });
+      const fontSize = fitFontSize(requiredColumns);
+      setSizing({ fontSize, width: widthForFont(fontSize) });
     }
     window.addEventListener("resize", handleResize);
-    return (_) => {
+    return () => {
       window.removeEventListener("resize", handleResize);
     };
-  });
+  }, [requiredColumns]);
 
   const appStyle = {
     textAlign: "left",
@@ -42,13 +60,7 @@ function App() {
     lineHeight: "1.1em",
   };
 
-  const helpers = new Helpers(
-    sizing,
-    setSizing,
-    longestLine,
-    precursor,
-    afterCursor
-  );
+  const helpers = new Helpers(sizing, precursor, afterCursor);
 
   return (
     <div style={appStyle}>

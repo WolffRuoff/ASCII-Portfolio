@@ -2,7 +2,7 @@ import { Markup } from "interweave";
 const Button = ({ helpers, lines1, url1, lines2, url2 }) => {
   let lines;
   if (!lines2) {
-    lines = helpers.AddSpaces(lines1, false, false, false);
+    lines = helpers.AddSpaces(lines1, false);
   } else {
     lines = helpers.AddSpacesForTwo(lines1, lines2, false);
   }
