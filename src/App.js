@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import Photo from "./components/Photo";
 import BlankLines from "./components/BlankLines";
 import Rocket from "./components/Rocket";
@@ -102,6 +103,14 @@ function App() {
           lines2={GithubName}
           url2="https://github.com/WolffRuoff"
         />
+        <BlankLines
+          width={sizing.width}
+          amount={3}
+          precursor={precursor}
+          afterCursor={afterCursor}
+        />
+        <br />
+        <Footer width={sizing.width} />
       </pre>
     </div>
   );
