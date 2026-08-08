@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+# real install dir(s); the .nosync suffix keeps iCloud from syncing them,
+# and node_modules is a symlink -> deps.nosync/node_modules
+*.nosync
 /.pnp
 .pnp.js
 
