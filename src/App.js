@@ -93,7 +93,7 @@ function App() {
             "with ASCII characters. Try resizing and copying the page.       ",
             "I hope you enjoy!                                               ",
             "                                                                ",
-            "To tell you a bit more about me, I have of Master of Science    ",
+            "To tell you a bit more about me, I have a Master of Science     ",
             "from Columbia University and a Bachelor of Science in Computer  ",
             "Science and Business Administration from Muhlenberg College. I'm",
             "a third degree Black-Belt in karate and enjoy singing, playing  ",
