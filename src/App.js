@@ -10,23 +10,18 @@ import { GithubName } from "./ascii/GithubName";
 import { GithubCat } from "./ascii/GithubCat";
 
 
-// Width of a monospace character relative to the font size (Courier New).
-// Only a fallback: the real width is measured, since the rendered font and
-// its rounded glyph advances vary by browser and platform.
+// Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 const MAX_FONT_SIZE = 12;
 const MIN_FONT_SIZE = 1;
 
-// Usable page width. clientWidth excludes a vertical scrollbar, which
-// window.innerWidth includes, so lines sized from it never overflow.
+// Excludes the scrollbar, unlike window.innerWidth.
 function viewportWidth() {
   return document.documentElement.clientWidth || window.innerWidth;
 }
 
-// Rendered width of one character at `fontSize`, measured from a hidden probe.
-// The probe is a <pre> like the one the art renders in, so it picks up the
-// same font (the browser's <pre> style overrides the inherited family).
+// Measured with a hidden <pre> so it uses the same font as the page.
 function charWidth(fontSize) {
   const probe = document.createElement("pre");
   probe.style.cssText =
@@ -39,13 +34,12 @@ function charWidth(fontSize) {
   return measured || fontSize * CHAR_ASPECT;
 }
 
-// Whole columns available at a given font size for the current window width.
+// Columns that fit across the page at this font size.
 function widthForFont(fontSize) {
   return Math.floor(viewportWidth() / charWidth(fontSize));
 }
 
-// Largest font size (<= MAX) at which `requiredColumns` still fit on screen,
-// falling back to MIN so width is always finite.
+// Largest font size at which `requiredColumns` fit.
 function fitSizing(requiredColumns) {
   for (let fontSize = MAX_FONT_SIZE; fontSize > MIN_FONT_SIZE; fontSize--) {
     const width = widthForFont(fontSize);
