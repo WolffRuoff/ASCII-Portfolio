@@ -17,7 +17,7 @@ const Button = ({ helpers, lines1, url1, lines2, url2 }) => {
   }
   return (
     <>
-      <Markup content={lines.join("\n")} />
+      <Markup content={lines.join("\n") + "\n"} />
     </>
   );
 };
