@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { toLines } from "../Helpers";
 
-const Photo = ({ width, helpers }) => {
-  const [finishedPhoto, setPhoto ]= useState("")
-  useEffect(() => {
-    setPhoto(helpers.AddSpaces([
+const Photo = ({ helpers }) => {
+  return toLines(
+    helpers.AddSpaces([
       `                                                                                                    `,
       `                                          .-==+**++=-.                                               `,
       `                                      :+#@@@@@@@@@@@@@%#=.                                          `,
@@ -53,12 +52,7 @@ const Photo = ({ width, helpers }) => {
       `.........:........... ............................................::.....:::.::::.:-=-::+-:--:.-+===`,
       `........::........... ........................... .....:...:....:.::...:.::::--:..:-=-::+----..=+=--`,
       `........:::.............................:............  ...................::--::.::-=-::+=--:..++=--`,
-    ]));
-  }, [width, helpers]);
-  return (
-    <>
-      {finishedPhoto}
-    </>
+    ])
   );
 };
 
