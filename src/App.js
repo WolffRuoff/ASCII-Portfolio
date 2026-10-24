@@ -105,9 +105,9 @@ function App() {
         {helpers.AddSpacesForTwo(
           [
             "Hello welcome to my page!                                       ",
-            "My name is Ethan Ruoff and I am a senior software engineer at   ",
-            "Klaviyo. This entire website is responsive and dynamically made ",
-            "with ASCII characters. Try resizing and copying the page.       ",
+            "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
+            "entire website is responsive and dynamically made with ASCII    ",
+            "characters. Try resizing and copying the page.                  ",
             "I hope you enjoy!                                               ",
             "                                                                ",
             "To tell you a bit more about me, I have a Master of Science     ",
