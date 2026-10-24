@@ -1,14 +1,6 @@
-import { useState, useEffect } from "react";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Photo from "./components/Photo";
-import BlankLines from "./components/BlankLines";
-import Rocket from "./components/Rocket";
-import { Helpers } from "./Helpers";
-import Button from "./components/Button";
-import { GithubName } from "./ascii/GithubName";
-import { GithubCat } from "./ascii/GithubCat";
-
+import { useState, useEffect, useMemo } from "react";
+import Line from "./components/Line";
+import { buildPage } from "./page/buildPage";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
@@ -77,69 +69,21 @@ function App() {
     lineHeight: "1.1em",
   };
 
-  const helpers = new Helpers(sizing, precursor, afterCursor);
+  const page = useMemo(
+    () => buildPage(sizing, precursor, afterCursor),
+    [sizing, precursor, afterCursor]
+  );
 
   return (
     <div style={appStyle}>
       <pre>
-        <Header width={sizing.width} helpers={helpers} />
-        <BlankLines
-          width={sizing.width}
-          amount={3}
-          precursor={precursor}
-          afterCursor={afterCursor}
-        />
-        <br />
-        <Photo
-          width={sizing.width}
-          fontSize={sizing.fontSize}
-          helpers={helpers}
-        />
-        <BlankLines
-          width={sizing.width}
-          amount={3}
-          precursor={precursor}
-          afterCursor={afterCursor}
-        />
-        <br />
-        {helpers.AddSpacesForTwo(
-          [
-            "Hello welcome to my page!                                       ",
-            "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
-            "entire website is responsive and dynamically made with ASCII    ",
-            "characters. Try resizing and copying the page.                  ",
-            "I hope you enjoy!                                               ",
-            "                                                                ",
-            "To tell you a bit more about me, I have a Master of Science     ",
-            "from Columbia University and a Bachelor of Science in Computer  ",
-            "Science and Business Administration from Muhlenberg College. I'm",
-            "a third degree Black-Belt in karate and enjoy singing, playing  ",
-            "boardgames, coding, and bookbinding in my free time.            ",
-          ],
-          Rocket()
-        )}
-        <BlankLines
-          width={sizing.width}
-          amount={3}
-          precursor={precursor}
-          afterCursor={afterCursor}
-        />
-        <br />
-        <Button
-          helpers={helpers}
-          lines1={GithubCat}
-          url1="https://github.com/WolffRuoff"
-          lines2={GithubName}
-          url2="https://github.com/WolffRuoff"
-        />
-        <BlankLines
-          width={sizing.width}
-          amount={3}
-          precursor={precursor}
-          afterCursor={afterCursor}
-        />
-        <br />
-        <Footer width={sizing.width} />
+        {page.lines.map((segments, row) => (
+          <Line
+            key={row}
+            segments={segments}
+            newline={row < page.lines.length - 1}
+          />
+        ))}
       </pre>
     </div>
   );

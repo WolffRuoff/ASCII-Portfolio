@@ -115,3 +115,10 @@ export class Helpers {
     return combine ? newLines.join("\n") : newLines;
   }
 }
+
+// Splits combined AddSpaces output into lines, dropping the trailing newline.
+export function toLines(text) {
+  const lines = text.split("\n");
+  if (lines[lines.length - 1] === "") lines.pop();
+  return lines;
+}
