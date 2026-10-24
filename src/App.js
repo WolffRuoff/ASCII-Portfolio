@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
+import { useGolf } from "./golf/useGolf";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
@@ -73,14 +74,18 @@ function App() {
     () => buildPage(sizing, precursor, afterCursor),
     [sizing, precursor, afterCursor]
   );
+  const preRef = useRef(null);
+  const golf = useGolf(page, preRef);
 
   return (
     <div style={appStyle}>
-      <pre>
+      <pre ref={preRef}>
         {page.lines.map((segments, row) => (
           <Line
             key={row}
             segments={segments}
+            ballCol={row === golf.row ? golf.col : -1}
+            onBallDown={golf.onPointerDown}
             newline={row < page.lines.length - 1}
           />
         ))}

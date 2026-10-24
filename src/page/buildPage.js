@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import Photo from "../components/Photo";
 import BlankLines from "../components/BlankLines";
 import Button from "../components/Button";
-import Rocket from "../components/Rocket";
+import Green, { TEE, CUP } from "../components/Green";
 import { Helpers, toLines } from "../Helpers";
 import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
@@ -34,7 +34,7 @@ export function buildPage(sizing, precursor, afterCursor) {
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        Rocket()
+        Green()
       )
     ),
     ...gap(),
@@ -52,5 +52,20 @@ export function buildPage(sizing, precursor, afterCursor) {
   const lines = rows.map((row) =>
     typeof row === "string" ? [{ text: row }] : row
   );
-  return { lines };
+  const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
+
+  const teeRow = grid.findIndex((line) => line.includes(TEE));
+  const tee = { row: teeRow, col: grid[teeRow].indexOf(TEE) };
+  const cup = {
+    row: teeRow,
+    col: grid[teeRow].indexOf(CUP, tee.col),
+    width: CUP.length,
+  };
+  lines[teeRow] = lines[teeRow].map((s) => ({
+    ...s,
+    text: s.text.replace(TEE, " "),
+  }));
+  grid[teeRow] = grid[teeRow].replace(TEE, " ");
+
+  return { lines, grid, tee, cup, center: Math.floor(width / 2) };
 }
