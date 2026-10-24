@@ -56,11 +56,8 @@ export function buildPage(sizing, precursor, afterCursor) {
 
   const teeRow = grid.findIndex((line) => line.includes(TEE));
   const tee = { row: teeRow, col: grid[teeRow].indexOf(TEE) };
-  const cup = {
-    row: teeRow,
-    col: grid[teeRow].indexOf(CUP, tee.col),
-    width: CUP.length,
-  };
+  const cupRow = grid.findIndex((line, i) => i > teeRow && line.includes(CUP));
+  const cup = { row: cupRow, col: grid[cupRow].indexOf(CUP), width: CUP.length };
   lines[teeRow] = lines[teeRow].map((s) => ({
     ...s,
     text: s.text.replace(TEE, " "),
