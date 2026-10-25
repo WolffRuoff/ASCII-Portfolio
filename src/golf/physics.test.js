@@ -40,13 +40,10 @@ test("starts covering the tee cell and the three cells right and below", () => {
   ]);
 });
 
-test("picks glyphs by half-cell position", () => {
+test("draws a rounded box on the nearest corner", () => {
   const glyphs = (x, y) => ballCells(x, y).map(({ ch }) => ch).join("");
-  expect(glyphs(2, 2)).toBe("\u25DC\u25DD\u25DF\u25DE");
-  expect(glyphs(2.5, 2)).toBe("\u25E0\u25E1");
-  expect(glyphs(2, 2.5)).toBe("()");
-  expect(glyphs(2.5, 2.5)).toBe("\u25CB");
-  expect(ballCells(2.6, 2.4)).toEqual([{ row: 2, col: 2, ch: "\u25CB" }]);
+  expect(glyphs(2, 2)).toBe("\u256D\u256E\u2570\u256F");
+  expect(ballCells(2.4, 1.6)).toEqual(ballCells(2, 2));
 });
 
 test("launches opposite the drag, harder for longer drags", () => {

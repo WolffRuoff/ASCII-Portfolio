@@ -1,5 +1,5 @@
-// Speeds are in px/s; positions are in cells. The ball snaps to half-cell
-// steps and is drawn with different glyphs depending on where it sits.
+// Speeds are in px/s; positions are in cells. The ball sits on the grid
+// corner nearest (x, y) and is drawn as a 2x2 rounded box around it.
 export const MAX_DRAG = 150;
 export const POWER = 6;
 export const MIN_DRAG = 4;
@@ -30,33 +30,14 @@ export function isCup(page, row, col) {
 
 // Cells the ball covers at (x, y), each with the glyph drawn there.
 export function ballCells(x, y) {
-  const hx = Math.round(x * 2);
-  const hy = Math.round(y * 2);
-  const col = Math.floor(hx / 2);
-  const row = Math.floor(hy / 2);
-  const onColEdge = hx % 2 === 0;
-  const onRowEdge = hy % 2 === 0;
-  if (onColEdge && onRowEdge) {
-    return [
-      { row: row - 1, col: col - 1, ch: "\u25DC" },
-      { row: row - 1, col, ch: "\u25DD" },
-      { row, col: col - 1, ch: "\u25DF" },
-      { row, col, ch: "\u25DE" },
-    ];
-  }
-  if (onRowEdge) {
-    return [
-      { row: row - 1, col, ch: "\u25E0" },
-      { row, col, ch: "\u25E1" },
-    ];
-  }
-  if (onColEdge) {
-    return [
-      { row, col: col - 1, ch: "(" },
-      { row, col, ch: ")" },
-    ];
-  }
-  return [{ row, col, ch: "\u25CB" }];
+  const row = Math.round(y);
+  const col = Math.round(x);
+  return [
+    { row: row - 1, col: col - 1, ch: "\u256D" },
+    { row: row - 1, col, ch: "\u256E" },
+    { row, col: col - 1, ch: "\u2570" },
+    { row, col, ch: "\u256F" },
+  ];
 }
 
 function fits(page, x, y) {
