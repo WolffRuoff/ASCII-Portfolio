@@ -1,5 +1,4 @@
-// Speeds are in px/s; positions are in cells. The ball sits on the grid
-// corner nearest (x, y) and is drawn as a 2x2 rounded box around it.
+// Speeds are in px/s; positions are in cells (x = column, y = row).
 export const MAX_DRAG = 150;
 export const POWER = 6;
 export const MIN_DRAG = 4;
@@ -10,8 +9,8 @@ const MAX_SUBSTEP = 0.3;
 
 export function atTee(page) {
   return {
-    x: page.tee.col + 1,
-    y: page.tee.row + 1,
+    x: page.tee.col + 0.5,
+    y: page.tee.row + 0.5,
     vx: 0,
     vy: 0,
     sunk: false,
@@ -28,30 +27,8 @@ export function isCup(page, row, col) {
   return row === cup.row && col >= cup.col && col < cup.col + cup.width;
 }
 
-// Cells the ball covers at (x, y), each with the glyph drawn there.
-export function ballCells(x, y) {
-  const row = Math.round(y);
-  const col = Math.round(x);
-  return [
-    { row: row - 1, col: col - 1, ch: "\u256D" },
-    { row: row - 1, col, ch: "\u256E" },
-    { row, col: col - 1, ch: "\u2570" },
-    { row, col, ch: "\u256F" },
-  ];
-}
-
-function fits(page, x, y) {
-  return ballCells(x, y).every(
-    ({ row, col }) => isOpen(page, row, col) || isCup(page, row, col)
-  );
-}
-
-function inCup(page, x, y) {
-  return ballCells(x, y).some(({ row, col }) => isCup(page, row, col));
-}
-
-function allOpen(page, x, y) {
-  return ballCells(x, y).every(({ row, col }) => isOpen(page, row, col));
+function passable(page, row, col) {
+  return isOpen(page, row, col) || isCup(page, row, col);
 }
 
 // Ball goes opposite the drag, capped at MAX_DRAG.
@@ -70,14 +47,14 @@ export function step(ball, page, { cw, lh }, dt) {
 
   for (let i = 0; i < subSteps; i++) {
     const nx = x + (vx * h) / cw;
-    if (fits(page, nx, y)) x = nx;
+    if (passable(page, Math.floor(y), Math.floor(nx))) x = nx;
     else vx = -vx * BOUNCE;
 
     const ny = y + (vy * h) / lh;
-    if (fits(page, x, ny)) y = ny;
+    if (passable(page, Math.floor(ny), Math.floor(x))) y = ny;
     else vy = -vy * BOUNCE;
 
-    if (inCup(page, x, y)) {
+    if (isCup(page, Math.floor(y), Math.floor(x))) {
       return { ...ball, x, y, vx: 0, vy: 0, sunk: true };
     }
   }
@@ -92,13 +69,13 @@ export function step(ball, page, { cw, lh }, dt) {
   return { ...ball, x, y, vx, vy };
 }
 
-// Nearest grid corner where the ball fits in whitespace, searching outward.
+// Nearest whitespace cell, searching outward ring by ring.
 export function nearestOpen(page, row, col, maxRadius = 60) {
   for (let r = 0; r <= maxRadius; r++) {
     for (let dr = -r; dr <= r; dr++) {
       for (let dc = -r; dc <= r; dc++) {
         if (Math.max(Math.abs(dr), Math.abs(dc)) !== r) continue;
-        if (allOpen(page, col + dc, row + dr)) {
+        if (isOpen(page, row + dr, col + dc)) {
           return { row: row + dr, col: col + dc };
         }
       }
@@ -112,9 +89,11 @@ export function remap(ball, from, to) {
   if (ball.sunk) return ball;
   if (ball.onTee) return atTee(to);
   const x = ball.x - from.center + to.center;
-  const y = Math.min(ball.y, to.grid.length - 1);
-  if (allOpen(to, x, y)) return { ...ball, x, y };
-  const spot = nearestOpen(to, Math.round(y), Math.round(x));
-  if (!spot) return atTee(to);
-  return { ...ball, x: spot.col, y: spot.row };
+  const y = Math.min(ball.y, to.grid.length - 0.5);
+  const row = Math.floor(y);
+  const col = Math.floor(x);
+  if (isOpen(to, row, col)) return { ...ball, x, y };
+  const cell = nearestOpen(to, row, col);
+  if (!cell) return atTee(to);
+  return { ...ball, x: cell.col + 0.5, y: cell.row + 0.5 };
 }
