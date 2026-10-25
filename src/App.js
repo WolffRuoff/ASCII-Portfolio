@@ -3,12 +3,14 @@ import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import { useGolf } from "./golf/useGolf";
 import { nearCup } from "./golf/physics";
+import { LEVELS } from "./golf/levels";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 const MAX_FONT_SIZE = 12;
 const MIN_FONT_SIZE = 1;
+const NEXT_LEVEL_DELAY = 1000;
 
 // Excludes the scrollbar, unlike window.innerWidth.
 function viewportWidth() {
@@ -71,19 +73,38 @@ function App() {
     lineHeight: "1.1em",
   };
 
+  const [levelIndex, setLevelIndex] = useState(0);
   const [flagPulled, setFlagPulled] = useState(false);
   const page = useMemo(
-    () => buildPage(sizing, precursor, afterCursor, !flagPulled),
-    [sizing, precursor, afterCursor, flagPulled]
+    () =>
+      buildPage(
+        sizing,
+        precursor,
+        afterCursor,
+        LEVELS[levelIndex],
+        !flagPulled
+      ),
+    [sizing, precursor, afterCursor, levelIndex, flagPulled]
   );
   const preRef = useRef(null);
-  const golf = useGolf(page, preRef);
+  const golf = useGolf(page, preRef, levelIndex);
 
   // Pull the flag once the ball gets close; it stays out after that.
   const ballNearCup = golf.row >= 0 && nearCup(page, golf.row, golf.col);
   useEffect(() => {
     if (ballNearCup) setFlagPulled(true);
   }, [ballNearCup]);
+
+  // After a sink, move on to the next level if there is one.
+  const hasNextLevel = levelIndex + 1 < LEVELS.length;
+  useEffect(() => {
+    if (!golf.sunk || !hasNextLevel) return;
+    const timer = setTimeout(() => {
+      setLevelIndex((i) => i + 1);
+      setFlagPulled(false);
+    }, NEXT_LEVEL_DELAY);
+    return () => clearTimeout(timer);
+  }, [golf.sunk, hasNextLevel]);
 
   return (
     <div style={appStyle}>

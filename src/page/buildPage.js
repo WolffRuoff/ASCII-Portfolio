@@ -3,18 +3,13 @@ import Footer from "../components/Footer";
 import Photo from "../components/Photo";
 import BlankLines from "../components/BlankLines";
 import Button from "../components/Button";
-import Green, { TEE, CUP } from "../components/Green";
+import { renderLevel, TEE, CUP } from "../golf/levels/render";
 import { Helpers, toLines } from "../Helpers";
 import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
 
 // Builds the whole page as lines of segments ({ text, href? }).
-export function buildPage(
-  sizing,
-  precursor,
-  afterCursor,
-  withFlag = true
-) {
+export function buildPage(sizing, precursor, afterCursor, level, withFlag) {
   const helpers = new Helpers(sizing, precursor, afterCursor);
   const width = sizing.width;
   const gap = () => BlankLines({ width, amount: 3, precursor, afterCursor });
@@ -39,7 +34,7 @@ export function buildPage(
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        Green(withFlag)
+        renderLevel(level, withFlag)
       )
     ),
     ...gap(),
@@ -59,15 +54,19 @@ export function buildPage(
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
-  const teeRow = grid.findIndex((line) => line.includes(TEE));
-  const tee = { row: teeRow, col: grid[teeRow].indexOf(TEE) };
-  const cupRow = grid.findIndex((line, i) => i > teeRow && line.includes(CUP));
-  const cup = { row: cupRow, col: grid[cupRow].indexOf(CUP), width: CUP.length };
-  lines[teeRow] = lines[teeRow].map((s) => ({
-    ...s,
-    text: s.text.replace(TEE, " "),
-  }));
-  grid[teeRow] = grid[teeRow].replace(TEE, " ");
+  // Swap a marker for real text, returning where it was.
+  const place = (marker, text) => {
+    const row = grid.findIndex((line) => line.includes(marker));
+    const col = grid[row].indexOf(marker);
+    lines[row] = lines[row].map((s) => ({
+      ...s,
+      text: s.text.replace(marker, text),
+    }));
+    grid[row] = grid[row].replace(marker, text);
+    return { row, col };
+  };
+  const tee = place(TEE, " ");
+  const cup = { ...place(CUP, "("), width: 3 };
 
   return { lines, grid, tee, cup, center: Math.floor(width / 2) };
 }

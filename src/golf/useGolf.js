@@ -10,10 +10,11 @@ function measure(pre) {
 }
 
 // Drives the ball: drag to aim, release to putt, animate until it stops or sinks.
-export function useGolf(page, preRef) {
+export function useGolf(page, preRef, levelIndex) {
   const [ball, setBall] = useState(() => atTee(page));
   const ballRef = useRef(ball);
   const pageRef = useRef(page);
+  const levelRef = useRef(levelIndex);
   const metricsRef = useRef(null);
   const frameRef = useRef(0);
 
@@ -22,12 +23,17 @@ export function useGolf(page, preRef) {
     setBall(next);
   }, []);
 
+  // A new level starts on its tee; anything else (resize, flag) keeps the ball.
   useLayoutEffect(() => {
     if (pageRef.current === page) return;
-    update(remap(ballRef.current, pageRef.current, page));
+    const newLevel = levelRef.current !== levelIndex;
+    update(
+      newLevel ? atTee(page) : remap(ballRef.current, pageRef.current, page)
+    );
     pageRef.current = page;
+    levelRef.current = levelIndex;
     metricsRef.current = null;
-  }, [page, update]);
+  }, [page, levelIndex, update]);
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
@@ -81,6 +87,7 @@ export function useGolf(page, preRef) {
   );
 
   return {
+    sunk: ball.sunk,
     row: ball.sunk ? -1 : Math.floor(ball.y),
     col: Math.floor(ball.x),
     onPointerDown,

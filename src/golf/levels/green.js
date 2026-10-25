@@ -1,16 +1,9 @@
-export const TEE = "\u0001";
-export const CUP = "(_)";
-
-// Rocket-sized putting green; the border is a wall like any other character.
-// withFlag false pulls the pin, leaving just the cup.
-const Green = (withFlag = true) => {
-  const flag = withFlag ? "|>" : "  ";
-  // The pole stands in the hole; without it the hole gets its top edge.
-  const pole = withFlag ? "|" : "_";
-  return [
+// Level 1: an open green with the tee top-left and the cup bottom-right.
+const green = {
+  name: "The Green",
+  art: [
     `  ______________________________________________________  `,
     ` /                                                      \\ `,
-    `|   ${TEE}                                                    |`,
     `|                                                        |`,
     `|                                                        |`,
     `|                                                        |`,
@@ -28,12 +21,15 @@ const Green = (withFlag = true) => {
     `|                                                        |`,
     `|                                                        |`,
     `|                                                        |`,
-    `|                                                  ${flag}    |`,
-    `|                                                  ${pole}     |`,
-    `|                                                 ${CUP}    |`,
+    `|                                                        |`,
+    `|                                                        |`,
+    `|                                                        |`,
+    `|                                                        |`,
     `|                                                        |`,
     ` \\______________________________________________________/ `,
-  ];
+  ],
+  tee: { row: 2, col: 4 },
+  cup: { row: 22, col: 50 },
 };
 
-export default Green;
+export default green;
