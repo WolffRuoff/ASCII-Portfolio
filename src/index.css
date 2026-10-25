@@ -15,3 +15,26 @@ code {
 a {
   text-decoration-line: none;
 }
+.golf-ball {
+  position: relative;
+  display: inline-block;
+  /* Keeps the cell width when the glyph comes from a fallback font. */
+  width: 1ch;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+/* Bigger invisible touch target on touch screens. */
+@media (pointer: coarse) {
+  .golf-ball::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}

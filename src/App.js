@@ -1,12 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
+import { useGolf } from "./golf/useGolf";
+import { nearCup } from "./golf/physics";
+import { LEVELS } from "./golf/levels";
+import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 const MAX_FONT_SIZE = 12;
 const MIN_FONT_SIZE = 1;
+const NEXT_LEVEL_DELAY = 1000;
 
 // Excludes the scrollbar, unlike window.innerWidth.
 function viewportWidth() {
@@ -69,18 +74,46 @@ function App() {
     lineHeight: "1.1em",
   };
 
-  const page = useMemo(
-    () => buildPage(sizing, precursor, afterCursor),
-    [sizing, precursor, afterCursor]
+  const [levelIndex, setLevelIndex] = useState(0);
+  const [flagPulled, setFlagPulled] = useState(false);
+  const level = LEVELS[levelIndex];
+  const basePage = useMemo(
+    () => buildPage(sizing, precursor, afterCursor, level.slot || BLANK_SLOT),
+    [sizing, precursor, afterCursor, level]
   );
+  const page = useMemo(
+    () => applyLevel(basePage, level, !flagPulled),
+    [basePage, level, flagPulled]
+  );
+  const preRef = useRef(null);
+  const golf = useGolf(page, preRef, levelIndex);
+
+  // Pull the flag once the ball gets close; it stays out after that.
+  const ballNearCup = golf.row >= 0 && nearCup(page, golf.row, golf.col);
+  useEffect(() => {
+    if (ballNearCup) setFlagPulled(true);
+  }, [ballNearCup]);
+
+  // After a sink, move on to the next level if there is one.
+  const hasNextLevel = levelIndex + 1 < LEVELS.length;
+  useEffect(() => {
+    if (!golf.sunk || !hasNextLevel) return;
+    const timer = setTimeout(() => {
+      setLevelIndex((i) => i + 1);
+      setFlagPulled(false);
+    }, NEXT_LEVEL_DELAY);
+    return () => clearTimeout(timer);
+  }, [golf.sunk, hasNextLevel]);
 
   return (
     <div style={appStyle}>
-      <pre>
+      <pre ref={preRef}>
         {page.lines.map((segments, row) => (
           <Line
             key={row}
             segments={segments}
+            ballCol={row === golf.row ? golf.col : -1}
+            onBallDown={golf.onPointerDown}
             newline={row < page.lines.length - 1}
           />
         ))}
