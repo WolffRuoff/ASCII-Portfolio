@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import { useGolf } from "./golf/useGolf";
+import { nearCup } from "./golf/physics";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
@@ -70,12 +71,19 @@ function App() {
     lineHeight: "1.1em",
   };
 
+  const [flagPulled, setFlagPulled] = useState(false);
   const page = useMemo(
-    () => buildPage(sizing, precursor, afterCursor),
-    [sizing, precursor, afterCursor]
+    () => buildPage(sizing, precursor, afterCursor, !flagPulled),
+    [sizing, precursor, afterCursor, flagPulled]
   );
   const preRef = useRef(null);
   const golf = useGolf(page, preRef);
+
+  // Pull the flag once the ball gets close; it stays out after that.
+  const ballNearCup = golf.row >= 0 && nearCup(page, golf.row, golf.col);
+  useEffect(() => {
+    if (ballNearCup) setFlagPulled(true);
+  }, [ballNearCup]);
 
   return (
     <div style={appStyle}>

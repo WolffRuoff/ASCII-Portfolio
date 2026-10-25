@@ -9,7 +9,12 @@ import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
 
 // Builds the whole page as lines of segments ({ text, href? }).
-export function buildPage(sizing, precursor, afterCursor) {
+export function buildPage(
+  sizing,
+  precursor,
+  afterCursor,
+  withFlag = true
+) {
   const helpers = new Helpers(sizing, precursor, afterCursor);
   const width = sizing.width;
   const gap = () => BlankLines({ width, amount: 3, precursor, afterCursor });
@@ -34,7 +39,7 @@ export function buildPage(sizing, precursor, afterCursor) {
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        Green()
+        Green(withFlag)
       )
     ),
     ...gap(),

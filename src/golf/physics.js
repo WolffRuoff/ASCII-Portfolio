@@ -6,6 +6,8 @@ export const FRICTION = 1.5;
 export const BOUNCE = 0.8;
 export const STOP_SPEED = 15;
 const MAX_SUBSTEP = 0.3;
+// Distance from the cup, in columns, at which the flag is pulled.
+export const PIN_RADIUS = 8;
 
 export function atTee(page) {
   return {
@@ -29,6 +31,14 @@ export function isCup(page, row, col) {
 
 function passable(page, row, col) {
   return isOpen(page, row, col) || isCup(page, row, col);
+}
+
+// Rows count about twice as much as columns since cells are tall.
+export function nearCup(page, row, col) {
+  const { cup } = page;
+  const dx = col - (cup.col + (cup.width - 1) / 2);
+  const dy = (row - cup.row) * 2;
+  return Math.hypot(dx, dy) <= PIN_RADIUS;
 }
 
 // Ball goes opposite the drag, capped at MAX_DRAG.

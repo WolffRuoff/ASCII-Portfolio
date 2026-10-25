@@ -1,4 +1,4 @@
-import { atTee, launchVelocity, remap, step } from "./physics";
+import { atTee, launchVelocity, nearCup, remap, step } from "./physics";
 
 const metrics = { cw: 10, lh: 10 };
 
@@ -102,4 +102,12 @@ test("stays on the tee or stays sunk across a resize", () => {
   expect(remap(atTee(page), page, wider)).toEqual(atTee(wider));
   const sunk = { ...atTee(page), sunk: true };
   expect(remap(sunk, page, wider)).toBe(sunk);
+});
+
+test("is near the cup within a few cells, counting rows as taller", () => {
+  // Cup middle is row 3, column 7.
+  expect(nearCup(page, 3, 7)).toBe(true);
+  expect(nearCup(page, 3, 0)).toBe(true);
+  expect(nearCup(page, 0, 7)).toBe(true);
+  expect(nearCup(page, 0, 0)).toBe(false);
 });
