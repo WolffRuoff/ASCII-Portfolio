@@ -10,21 +10,25 @@ function wrap(segment, children, key) {
   );
 }
 
-// One row of the page; draws the ball over its column when it's on this row.
-const Line = memo(({ segments, ballCol, onBallDown, newline }) => {
+// One row of the page; draws ballText over the cells starting at ballCol.
+const Line = memo(({ segments, ballCol, ballText, onBallDown, newline }) => {
+  const ballEnd = ballCol + ballText.length;
   let offset = 0;
   const parts = segments.map((segment, i) => {
     const start = offset;
     offset += segment.text.length;
-    if (ballCol < start || ballCol >= offset) return wrap(segment, segment.text, i);
-    const at = ballCol - start;
+    const from = Math.max(ballCol, start);
+    const to = Math.min(ballEnd, offset);
+    if (ballCol < 0 || from >= to) return wrap(segment, segment.text, i);
     return (
       <Fragment key={i}>
-        {wrap(segment, segment.text.slice(0, at))}
-        <span className="golf-ball" onPointerDown={onBallDown}>
-          o
-        </span>
-        {wrap(segment, segment.text.slice(at + 1))}
+        {wrap(segment, segment.text.slice(0, from - start))}
+        {[...ballText.slice(from - ballCol, to - ballCol)].map((ch, j) => (
+          <span key={j} className="golf-ball" onPointerDown={onBallDown}>
+            {ch}
+          </span>
+        ))}
+        {wrap(segment, segment.text.slice(to - start))}
       </Fragment>
     );
   });

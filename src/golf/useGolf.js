@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { atTee, launchVelocity, remap, step } from "./physics";
+import { atTee, ballCells, launchVelocity, remap, step } from "./physics";
 
 function measure(pre) {
   const ball = pre.querySelector(".golf-ball");
@@ -50,9 +50,16 @@ export function useGolf(page, preRef) {
       const current = ballRef.current;
       if (current.sunk || current.vx || current.vy) return;
       e.preventDefault();
-      const rect = e.currentTarget.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
+      // Centre of the cells the ball is drawn in.
+      const rects = [...preRef.current.querySelectorAll(".golf-ball")].map(
+        (el) => el.getBoundingClientRect()
+      );
+      const left = Math.min(...rects.map((r) => r.left));
+      const right = Math.max(...rects.map((r) => r.right));
+      const top = Math.min(...rects.map((r) => r.top));
+      const bottom = Math.max(...rects.map((r) => r.bottom));
+      const cx = (left + right) / 2;
+      const cy = (top + bottom) / 2;
 
       const swallowClick = (ev) => {
         ev.preventDefault();
@@ -81,8 +88,7 @@ export function useGolf(page, preRef) {
   );
 
   return {
-    row: ball.sunk ? -1 : Math.floor(ball.y),
-    col: Math.floor(ball.x),
+    cells: ball.sunk ? [] : ballCells(ball.x, ball.y),
     onPointerDown,
   };
 }

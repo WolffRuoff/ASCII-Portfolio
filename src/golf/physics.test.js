@@ -1,8 +1,8 @@
-import { atTee, launchVelocity, remap, step } from "./physics";
+import { atTee, ballCells, launchVelocity, remap, step } from "./physics";
 
 const metrics = { cw: 10, lh: 10 };
 
-function makePage(grid, center = 5) {
+function makePage(grid, center = 6) {
   const row = grid.findIndex((line) => line.includes("T"));
   const tee = { row, col: grid[row].indexOf("T") };
   const cupRow = grid.findIndex((line) => line.includes("(_)"));
@@ -14,20 +14,40 @@ function makePage(grid, center = 5) {
   };
 }
 
-function roll(ball, page, frames = 600) {
-  for (let i = 0; i < frames && !ball.sunk && (ball.vx || ball.vy); i++) {
-    ball = step(ball, page, metrics, 1 / 60);
-  }
-  return ball;
+// What's under each cell the ball covers.
+function cells(page, ball) {
+  return ballCells(ball.x, ball.y).map(({ row, col }) => page.grid[row][col]);
 }
 
 const page = makePage([
-  "##########",
-  "#T       #",
-  "#        #",
-  "#     (_)#",
-  "##########",
+  "############",
+  "#T         #",
+  "#          #",
+  "#          #",
+  "#          #",
+  "#      (_) #",
+  "#          #",
+  "############",
 ]);
+
+test("starts covering the tee cell and the three cells right and below", () => {
+  const { x, y } = atTee(page);
+  expect(ballCells(x, y).map(({ row, col }) => [row, col])).toEqual([
+    [1, 1],
+    [1, 2],
+    [2, 1],
+    [2, 2],
+  ]);
+});
+
+test("picks glyphs by half-cell position", () => {
+  const glyphs = (x, y) => ballCells(x, y).map(({ ch }) => ch).join("");
+  expect(glyphs(2, 2)).toBe("\u25DC\u25DD\u25DF\u25DE");
+  expect(glyphs(2.5, 2)).toBe("\u25E0\u25E1");
+  expect(glyphs(2, 2.5)).toBe("()");
+  expect(glyphs(2.5, 2.5)).toBe("\u25CB");
+  expect(ballCells(2.6, 2.4)).toEqual([{ row: 2, col: 2, ch: "\u25CB" }]);
+});
 
 test("launches opposite the drag, harder for longer drags", () => {
   const short = launchVelocity(20, 0);
@@ -47,7 +67,7 @@ test("bounces off a wall by flipping only the blocked axis", () => {
   const next = step(ball, page, metrics, 0.1);
   expect(next.vx).toBeGreaterThan(0);
   expect(next.vy).toBe(0);
-  expect(page.grid[Math.floor(next.y)][Math.floor(next.x)]).toBe(" ");
+  expect(cells(page, next).every((c) => c === " ")).toBe(true);
 });
 
 test("flips both axes in a corner", () => {
@@ -57,48 +77,64 @@ test("flips both axes in a corner", () => {
   expect(next.vy).toBeGreaterThan(0);
 });
 
-test("never leaves whitespace and friction brings it to rest", () => {
-  let ball = { ...atTee(page), vx: 900, vy: 400, onTee: false };
+test("every covered cell stays in whitespace and friction brings it to rest", () => {
+  let ball = { ...atTee(page), vx: 900, vy: 200, onTee: false };
   for (let i = 0; i < 2000 && (ball.vx || ball.vy) && !ball.sunk; i++) {
     ball = step(ball, page, metrics, 1 / 60);
-    const ch = page.grid[Math.floor(ball.y)][Math.floor(ball.x)];
-    expect(ch === " " || ball.sunk).toBe(true);
+    if (!ball.sunk) {
+      expect(cells(page, ball).every((c) => c === " ")).toBe(true);
+    }
   }
   expect(ball.sunk || (ball.vx === 0 && ball.vy === 0)).toBe(true);
 });
 
-test("sinks when it reaches the cup", () => {
-  const ball = { x: 3.5, y: 3.5, vx: 200, vy: 0, sunk: false, onTee: false };
-  expect(roll(ball, page).sunk).toBe(true);
+test("sinks when any of its cells reaches the cup", () => {
+  let ball = { x: 3, y: 6, vx: 200, vy: 0, sunk: false, onTee: false };
+  for (let i = 0; i < 600 && !ball.sunk && ball.vx; i++) {
+    ball = step(ball, page, metrics, 1 / 60);
+  }
+  expect(ball.sunk).toBe(true);
 });
 
 test("keeps its offset from the centre on resize", () => {
   const wider = makePage(
     [
+      "##############",
+      "# T          #",
+      "#            #",
+      "#            #",
+      "#            #",
+      "#        (_) #",
+      "#            #",
+      "##############",
+    ],
+    7
+  );
+  const ball = { x: 5, y: 3, vx: 0, vy: 0, sunk: false, onTee: false };
+  expect(remap(ball, page, wider)).toMatchObject({ x: 6, y: 3 });
+});
+
+test("moves to the nearest open spot if its cells are filled after resize", () => {
+  const blocked = makePage(
+    [
       "############",
-      "# T        #",
+      "#T         #",
       "#          #",
-      "#       (_)#",
+      "#    #     #",
+      "#          #",
+      "#      (_) #",
+      "#          #",
       "############",
     ],
     6
   );
-  const ball = { x: 4.5, y: 2.5, vx: 0, vy: 0, sunk: false, onTee: false };
-  expect(remap(ball, page, wider)).toMatchObject({ x: 5.5, y: 2.5 });
-});
-
-test("moves to the nearest space if its cell is filled after resize", () => {
-  const blocked = makePage(
-    ["##########", "#T       #", "#   #    #", "#     (_)#", "##########"],
-    5
-  );
-  const ball = { x: 4.5, y: 2.5, vx: 0, vy: 0, sunk: false, onTee: false };
+  const ball = { x: 5, y: 3, vx: 0, vy: 0, sunk: false, onTee: false };
   const next = remap(ball, page, blocked);
-  expect(blocked.grid[Math.floor(next.y)][Math.floor(next.x)]).toBe(" ");
+  expect(cells(blocked, next).every((c) => c === " ")).toBe(true);
 });
 
 test("stays on the tee or stays sunk across a resize", () => {
-  const wider = makePage(["#####", "# T #", "#(_)#", "#####"], 2);
+  const wider = makePage(["######", "# T  #", "#    #", "#(_) #", "######"], 3);
   expect(remap(atTee(page), page, wider)).toEqual(atTee(wider));
   const sunk = { ...atTee(page), sunk: true };
   expect(remap(sunk, page, wider)).toBe(sunk);

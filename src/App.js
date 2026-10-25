@@ -76,7 +76,12 @@ function App() {
   );
   const preRef = useRef(null);
   const golf = useGolf(page, preRef);
-
+  // Each row's run of ball glyphs, keyed by row.
+  const ballRows = {};
+  for (const { row, col, ch } of golf.cells) {
+    const run = ballRows[row] || { col, text: "" };
+    ballRows[row] = { col: Math.min(run.col, col), text: run.text + ch };
+  }
   return (
     <div style={appStyle}>
       <pre ref={preRef}>
@@ -84,7 +89,8 @@ function App() {
           <Line
             key={row}
             segments={segments}
-            ballCol={row === golf.row ? golf.col : -1}
+            ballCol={ballRows[row] ? ballRows[row].col : -1}
+            ballText={ballRows[row] ? ballRows[row].text : ""}
             onBallDown={golf.onPointerDown}
             newline={row < page.lines.length - 1}
           />
