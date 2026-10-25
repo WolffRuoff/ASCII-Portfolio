@@ -1,16 +1,38 @@
+import type { Page, PageLine } from "../../page/buildPage";
+import type { Cell, Cup } from "../physics";
+import type { Anchor, Level } from "./types";
+
+export interface LevelPage extends Page {
+  tee: Cell;
+  cup: Cup;
+  dropped: number;
+}
+
 // Same size as the old rocket, so a level without a slot keeps the layout.
-export const BLANK_SLOT = Array(25).fill(" ".repeat(58));
+export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
 // Turns an anchor into a page row and column.
-export function resolve(page, { section, row = 0, col = 0, from = "left" }) {
+export function resolve(
+  page: Page,
+  { section, row = 0, col = 0, from = "left" }: Anchor
+): Cell {
+  if (section === "slot") {
+    const s = page.sections.slot;
+    return { row: s.row + row, col: s.col + col };
+  }
   const s = page.sections[section];
-  if (section === "slot") return { row: s.row + row, col: s.col + col };
   const base =
     from === "center" ? page.center : from === "right" ? page.right : page.left;
   return { row: s.row + row, col: base + col };
 }
 
-function setChar(lines, grid, row, col, ch) {
+function setChar(
+  lines: PageLine[],
+  grid: string[],
+  row: number,
+  col: number,
+  ch: string
+) {
   let offset = 0;
   lines[row] = lines[row].map((segment) => {
     const at = col - offset;
@@ -24,12 +46,16 @@ function setChar(lines, grid, row, col, ch) {
 
 // Draws a level's art, cup and flag onto a built page. `dropped` counts
 // characters that landed outside the frame or on non-blank cells.
-export function applyLevel(page, level, withFlag = true) {
+export function applyLevel(
+  page: Page,
+  level: Level,
+  withFlag = true
+): LevelPage {
   const lines = [...page.lines];
   const grid = [...page.grid];
   let dropped = 0;
 
-  const draw = (row, col, text) => {
+  const draw = (row: number, col: number, text: string) => {
     [...text].forEach((ch, i) => {
       const c = col + i;
       if (ch === " ") return;

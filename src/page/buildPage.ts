@@ -4,8 +4,43 @@ import Photo from "../components/Photo";
 import BlankLines from "../components/BlankLines";
 import Button from "../components/Button";
 import { Helpers, toLines } from "../Helpers";
+import type { Sizing } from "../Helpers";
 import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
+
+export interface Segment {
+  text: string;
+  href?: string;
+}
+
+export type PageLine = Segment[];
+
+export type SectionName =
+  | "header"
+  | "photo"
+  | "bio"
+  | "slot"
+  | "buttons"
+  | "footer";
+
+export interface Section {
+  row: number;
+  height: number;
+}
+
+export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
+  slot: Section & { col: number };
+};
+
+export interface Page {
+  lines: PageLine[];
+  // Plain text of each line, for looking up cells.
+  grid: string[];
+  sections: Sections;
+  left: number;
+  right: number;
+  center: number;
+}
 
 // Marks the slot's top-left cell so it can be found after layout.
 const SLOT_MARK = "\u0001";
@@ -13,15 +48,24 @@ const SLOT_MARK = "\u0001";
 // Builds the whole page as lines of segments ({ text, href? }). `slot` is the
 // art shown beside the bio. Also returns where each section starts so levels
 // can anchor to them.
-export function buildPage(sizing, precursor, afterCursor, slot) {
+export function buildPage(
+  sizing: Sizing,
+  precursor: string,
+  afterCursor: string,
+  slot: string[]
+): Page {
   const helpers = new Helpers(sizing, precursor, afterCursor);
   const width = sizing.width;
   const gap = () => BlankLines({ width, amount: 3, precursor, afterCursor });
   const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
-  const rows = [];
-  const sections = {};
-  const add = (name, sectionRows) => {
+  const rows: (string | PageLine)[] = [];
+  // Every section is filled in below before it's returned.
+  const sections = {} as Sections;
+  const add = (
+    name: Exclude<SectionName, "slot"> | null,
+    sectionRows: (string | PageLine)[]
+  ) => {
     if (name) sections[name] = { row: rows.length, height: sectionRows.length };
     rows.push(...sectionRows);
   };
@@ -64,7 +108,7 @@ export function buildPage(sizing, precursor, afterCursor, slot) {
   add(null, gap());
   add("footer", Footer({ width }));
 
-  const lines = rows.map((row) =>
+  const lines = rows.map((row): PageLine =>
     typeof row === "string" ? [{ text: row }] : row
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));

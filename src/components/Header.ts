@@ -1,6 +1,12 @@
 import { toLines } from "../Helpers";
+import type { Helpers } from "../Helpers";
 
-const Header = ({ width, helpers }) => {
+interface HeaderProps {
+  width: number;
+  helpers: Helpers;
+}
+
+const Header = ({ width, helpers }: HeaderProps): string[] => {
   const headBarAbsolute = `   ` + "_".repeat(Math.max(0, width - 6));
   return [
     headBarAbsolute,

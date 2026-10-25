@@ -1,12 +1,22 @@
-export class Helpers {
-  constructor(sizing, precursor, afterCursor) {
-    this.sizing = sizing;
-    this.precursor = precursor;
-    this.afterCursor = afterCursor;
-  }
+export interface Sizing {
+  fontSize: number;
+  width: number;
+}
 
-  AddSpaces(lines, combine = true) {
-    const newLines = [];
+// Uncombined output: each line split into padding and content pieces.
+export type LineParts = string[];
+
+export class Helpers {
+  constructor(
+    public sizing: Sizing,
+    public precursor: string,
+    public afterCursor: string
+  ) {}
+
+  AddSpaces(lines: string[], combine?: true): string;
+  AddSpaces(lines: string[], combine: false): LineParts[];
+  AddSpaces(lines: string[], combine = true): string | LineParts[] {
+    const newLines: (string | LineParts)[] = [];
     for (var i = 0; i < lines.length; i++) {
       const leftPad = Math.max(
         0,
@@ -36,11 +46,21 @@ export class Helpers {
       }
     }
     if (combine) newLines.push("");
-    return combine ? newLines.join("\n") : newLines;
+    return combine ? newLines.join("\n") : (newLines as LineParts[]);
   }
 
-  AddSpacesForTwo(lines1, lines2, combine = true) {
-    const newLines = [];
+  AddSpacesForTwo(lines1: string[], lines2: string[], combine?: true): string;
+  AddSpacesForTwo(
+    lines1: string[],
+    lines2: string[],
+    combine: false
+  ): LineParts[];
+  AddSpacesForTwo(
+    lines1: string[],
+    lines2: string[],
+    combine = true
+  ): string | LineParts[] {
+    const newLines: (string | LineParts)[] = [];
     // Make sure each lines only has 1 length
     const gapWidth = Math.floor(
       (this.sizing.width -
@@ -52,10 +72,7 @@ export class Helpers {
     );
     // If window is too small default to only 1 column
     if (gapWidth <= 1 || window.innerWidth < 500) {
-      if (combine) lines1.push(" ");
-      return this.AddSpaces(lines1, combine).concat(
-        this.AddSpaces(lines2, combine)
-      );
+      return this.stacked(lines1, lines2, combine);
     }
     const gap = " ".repeat(gapWidth);
     const header = this.precursor + gap + lines1[0] + gap + lines2[0];
@@ -63,10 +80,7 @@ export class Helpers {
       this.sizing.width - header.length - this.afterCursor.length
     );
     if (afterLength <= 0) {
-      if (combine) lines1.push(" ");
-      return this.AddSpaces(lines1, combine).concat(
-        this.AddSpaces(lines2, combine)
-      );
+      return this.stacked(lines1, lines2, combine);
     }
 
     if (lines1.length > lines2.length) {
@@ -90,7 +104,7 @@ export class Helpers {
     }
 
     for (var j = 0; j < lines1.length; j++) {
-      let txt;
+      let txt: string | LineParts;
       if (combine) {
         txt =
           this.precursor +
@@ -112,12 +126,28 @@ export class Helpers {
       newLines.push(txt);
     }
     if (combine) newLines.push("");
-    return combine ? newLines.join("\n") : newLines;
+    return combine ? newLines.join("\n") : (newLines as LineParts[]);
+  }
+
+  // Fallback for AddSpacesForTwo when both columns don't fit side by side.
+  private stacked(
+    lines1: string[],
+    lines2: string[],
+    combine: boolean
+  ): string | LineParts[] {
+    if (!combine) {
+      return [
+        ...this.AddSpaces(lines1, false),
+        ...this.AddSpaces(lines2, false),
+      ];
+    }
+    lines1.push(" ");
+    return this.AddSpaces(lines1) + this.AddSpaces(lines2);
   }
 }
 
 // Splits combined AddSpaces output into lines, dropping the trailing newline.
-export function toLines(text) {
+export function toLines(text: string): string[] {
   const lines = text.split("\n");
   if (lines[lines.length - 1] === "") lines.pop();
   return lines;

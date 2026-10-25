@@ -1,6 +1,7 @@
 import { toLines } from "../Helpers";
+import type { Helpers } from "../Helpers";
 
-const Photo = ({ helpers }) => {
+const Photo = ({ helpers }: { helpers: Helpers }): string[] => {
   return toLines(
     helpers.AddSpaces([
       `                                                                                                    `,

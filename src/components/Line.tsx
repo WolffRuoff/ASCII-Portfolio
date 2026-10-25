@@ -1,8 +1,10 @@
 import { Fragment, memo } from "react";
+import type { PointerEventHandler, ReactNode } from "react";
+import type { PageLine, Segment } from "../page/buildPage";
 
 const BALL = "\u25CB";
 
-function wrap(segment, children, key) {
+function wrap(segment: Segment, children: ReactNode, key?: number) {
   return segment.href ? (
     <a key={key} href={segment.href}>
       {children}
@@ -13,7 +15,15 @@ function wrap(segment, children, key) {
 }
 
 // One row of the page; draws the ball over its column when it's on this row.
-const Line = memo(({ segments, ballCol, onBallDown, newline }) => {
+interface LineProps {
+  segments: PageLine;
+  // -1 when the ball isn't on this row.
+  ballCol: number;
+  onBallDown: PointerEventHandler<HTMLElement>;
+  newline: boolean;
+}
+
+const Line = memo(({ segments, ballCol, onBallDown, newline }: LineProps) => {
   let offset = 0;
   const parts = segments.map((segment, i) => {
     const start = offset;

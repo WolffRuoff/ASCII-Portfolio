@@ -1,5 +1,22 @@
-const Button = ({ helpers, lines1, url1, lines2, url2 }) => {
-  let lines;
+import type { Helpers, LineParts } from "../Helpers";
+import type { PageLine } from "../page/buildPage";
+
+interface ButtonProps {
+  helpers: Helpers;
+  lines1: string[];
+  url1: string;
+  lines2?: string[];
+  url2?: string;
+}
+
+const Button = ({
+  helpers,
+  lines1,
+  url1,
+  lines2,
+  url2,
+}: ButtonProps): PageLine[] => {
+  let lines: LineParts[];
   if (!lines2) {
     lines = helpers.AddSpaces(lines1, false);
   } else {

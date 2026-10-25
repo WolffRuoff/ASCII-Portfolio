@@ -1,4 +1,4 @@
-export const GithubCat = [
+export const GithubCat: string[] = [
   '               .mmMMMMMMMMMMMMMmm.               ',
   '           .mMMMMMMMMMMMMMMMMMMMMMMMm.           ',
   '        .mMMMMMMMMMMMMMMMMMMMMMMMMMMMMMm.        ',
