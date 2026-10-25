@@ -4,6 +4,7 @@ import { buildPage } from "./page/buildPage";
 import { useGolf } from "./golf/useGolf";
 import { nearCup } from "./golf/physics";
 import { LEVELS } from "./golf/levels";
+import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
@@ -75,16 +76,14 @@ function App() {
 
   const [levelIndex, setLevelIndex] = useState(0);
   const [flagPulled, setFlagPulled] = useState(false);
+  const level = LEVELS[levelIndex];
+  const basePage = useMemo(
+    () => buildPage(sizing, precursor, afterCursor, level.slot || BLANK_SLOT),
+    [sizing, precursor, afterCursor, level]
+  );
   const page = useMemo(
-    () =>
-      buildPage(
-        sizing,
-        precursor,
-        afterCursor,
-        LEVELS[levelIndex],
-        !flagPulled
-      ),
-    [sizing, precursor, afterCursor, levelIndex, flagPulled]
+    () => applyLevel(basePage, level, !flagPulled),
+    [basePage, level, flagPulled]
   );
   const preRef = useRef(null);
   const golf = useGolf(page, preRef, levelIndex);

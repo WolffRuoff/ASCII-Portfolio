@@ -1,7 +1,7 @@
-// Level 1: an open green with the tee top-left and the cup bottom-right.
+// Level 1: an open green beside the bio, tee top-left and cup bottom-right.
 const green = {
   name: "The Green",
-  art: [
+  slot: [
     `  ______________________________________________________  `,
     ` /                                                      \\ `,
     `|                                                        |`,
@@ -28,8 +28,8 @@ const green = {
     `|                                                        |`,
     ` \\______________________________________________________/ `,
   ],
-  tee: { row: 2, col: 4 },
-  cup: { row: 22, col: 50 },
+  tee: { section: "slot", row: 2, col: 4 },
+  cup: { section: "slot", row: 22, col: 50 },
 };
 
 export default green;
