@@ -111,3 +111,18 @@ test("is near the cup within a few cells, counting rows as taller", () => {
   expect(nearCup(page, 0, 7)).toBe(true);
   expect(nearCup(page, 0, 0)).toBe(false);
 });
+
+test("sinks through the top of the hole", () => {
+  const pulled = makePage([
+    "##########",
+    "#T       #",
+    "#      _ #",
+    "#     (_)#",
+    "##########",
+  ]);
+  let ball = { x: 7.5, y: 1.5, vx: 0, vy: 200, sunk: false, onTee: false };
+  for (let i = 0; i < 600 && !ball.sunk && ball.vy; i++) {
+    ball = step(ball, pulled, metrics, 1 / 60);
+  }
+  expect(ball.sunk).toBe(true);
+});

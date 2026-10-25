@@ -24,9 +24,14 @@ export function isOpen(page, row, col) {
   return page.grid[row]?.[col] === " ";
 }
 
+// The cup row plus the cell above its middle, where the hole's top sits.
 export function isCup(page, row, col) {
   const { cup } = page;
-  return row === cup.row && col >= cup.col && col < cup.col + cup.width;
+  const middle = cup.col + Math.floor(cup.width / 2);
+  return (
+    (row === cup.row && col >= cup.col && col < cup.col + cup.width) ||
+    (row === cup.row - 1 && col === middle)
+  );
 }
 
 function passable(page, row, col) {

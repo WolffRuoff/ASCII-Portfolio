@@ -5,7 +5,8 @@ export const CUP = "(_)";
 // withFlag false pulls the pin, leaving just the cup.
 const Green = (withFlag = true) => {
   const flag = withFlag ? "|>" : "  ";
-  const pole = withFlag ? "|" : " ";
+  // The pole stands in the hole; without it the hole gets its top edge.
+  const pole = withFlag ? "|" : "_";
   return [
     `  ______________________________________________________  `,
     ` /                                                      \\ `,
