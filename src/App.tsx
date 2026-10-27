@@ -121,11 +121,11 @@ function App() {
   const preRef = useRef<HTMLPreElement>(null);
   const golf = useGolf(page, preRef, levelIndex);
 
-  // Pull the flag once the ball gets close; it stays out after that.
+  // The flag is out while the ball is close to the cup or in it.
   const ballNearCup = golf.row >= 0 && nearCup(page, golf.row, golf.col);
   useEffect(() => {
-    if (ballNearCup) setFlagPulled(true);
-  }, [ballNearCup]);
+    setFlagPulled(ballNearCup || golf.sunk);
+  }, [ballNearCup, golf.sunk]);
 
   // After a sink, shrink the level into its hole, then switch levels.
   const hasNextLevel = levelIndex + 1 < LEVELS.length;

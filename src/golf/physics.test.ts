@@ -127,3 +127,38 @@ test("sinks through the top of the hole", () => {
   }
   expect(ball.sunk).toBe(true);
 });
+
+test("glances off slashes along their slope", () => {
+  const slashes = makePage([
+    "##########",
+    "#T   \\   #",
+    "#        #",
+    "#    /   #",
+    "#     (_)#",
+    "##########",
+  ]);
+  const into = (y: number) => ({
+    x: 3.5,
+    y,
+    vx: 300,
+    vy: 0,
+    sunk: false,
+    onTee: false,
+  });
+  let ball = into(1.5);
+  while (ball.vx > 0) ball = step(ball, slashes, metrics, 1 / 60);
+  expect(ball.vy).toBeGreaterThan(0);
+  ball = into(3.5);
+  while (ball.vx > 0) ball = step(ball, slashes, metrics, 1 / 60);
+  expect(ball.vy).toBeLessThan(0);
+});
+
+test("turns back when running straight along a slash", () => {
+  const slope = makePage(["#####", "#T  #", "# \\ #", "#  (_)", "#####"]);
+  let ball = { x: 1.5, y: 1.5, vx: 300, vy: 300, sunk: false, onTee: false };
+  for (let i = 0; i < 30 && ball.vx > 0; i++) {
+    ball = step(ball, slope, metrics, 1 / 60);
+  }
+  expect(ball.vx).toBeLessThan(0);
+  expect(ball.vy).toBeLessThan(0);
+});

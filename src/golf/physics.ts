@@ -89,6 +89,17 @@ export function launchVelocity(
   return { vx: -dx * scale, vy: -dy * scale };
 }
 
+// Bounces (vx, vy) off a wall running along (dx, dy), in px.
+function reflect(vx: number, vy: number, dx: number, dy: number) {
+  const len = Math.hypot(dx, dy);
+  const [ux, uy] = [dx / len, dy / len];
+  const along = vx * ux + vy * uy;
+  return [
+    (2 * along * ux - vx) * BOUNCE,
+    (2 * along * uy - vy) * BOUNCE,
+  ];
+}
+
 export function step(
   ball: Ball,
   page: Course,
@@ -100,7 +111,31 @@ export function step(
   const subSteps = Math.max(1, Math.ceil(cells / MAX_SUBSTEP));
   const h = dt / subSteps;
 
+  // Slope of the slash the ball would hit next, if any.
+  const slashAhead = (vx: number, vy: number) => {
+    const nx = Math.floor(x + (vx * h) / cw);
+    const ny = Math.floor(y + (vy * h) / lh);
+    const cells = [
+      [Math.floor(y), nx],
+      [ny, Math.floor(x)],
+      [ny, nx],
+    ];
+    for (const [row, col] of cells) {
+      const ch = page.grid[row]?.[col];
+      if (ch === "/" || ch === "\\") return ch;
+    }
+    return null;
+  };
+
   for (let i = 0; i < subSteps; i++) {
+    const slash = slashAhead(vx, vy);
+    if (slash) {
+      [vx, vy] = reflect(vx, vy, cw, slash === "/" ? -lh : lh);
+      // Glancing along the slash: just turn back.
+      if (slashAhead(vx, vy)) [vx, vy] = [-vx, -vy];
+      continue;
+    }
+
     const nx = x + (vx * h) / cw;
     if (passable(page, Math.floor(y), Math.floor(nx))) x = nx;
     else vx = -vx * BOUNCE;
