@@ -1,4 +1,5 @@
 import green from "./green";
+import type { Level } from "./types";
 
 // A level is plain data; every field but name, tee and cup is optional.
 //
@@ -20,4 +21,4 @@ import green from "./green";
 // text. Any non-space character is a wall.
 
 // Play order. To add a level, write its file and list it here.
-export const LEVELS = [green];
+export const LEVELS: Level[] = [green];

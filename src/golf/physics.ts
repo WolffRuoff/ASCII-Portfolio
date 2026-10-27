@@ -9,7 +9,39 @@ const MAX_SUBSTEP = 0.3;
 // Distance from the cup, in columns, at which the flag is pulled.
 export const PIN_RADIUS = 8;
 
-export function atTee(page) {
+export interface Cell {
+  row: number;
+  col: number;
+}
+
+export interface Cup extends Cell {
+  width: number;
+}
+
+// The parts of a level page the physics reads.
+export interface Course {
+  grid: string[];
+  tee: Cell;
+  cup: Cup;
+  center: number;
+}
+
+export interface Ball {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  sunk: boolean;
+  onTee: boolean;
+}
+
+// Character width and line height, in px.
+export interface Metrics {
+  cw: number;
+  lh: number;
+}
+
+export function atTee(page: Course): Ball {
   return {
     x: page.tee.col + 0.5,
     y: page.tee.row + 0.5,
@@ -20,12 +52,12 @@ export function atTee(page) {
   };
 }
 
-export function isOpen(page, row, col) {
+export function isOpen(page: Course, row: number, col: number): boolean {
   return page.grid[row]?.[col] === " ";
 }
 
 // The cup row plus the cell above its middle, where the hole's top sits.
-export function isCup(page, row, col) {
+export function isCup(page: Course, row: number, col: number): boolean {
   const { cup } = page;
   const middle = cup.col + Math.floor(cup.width / 2);
   return (
@@ -34,12 +66,12 @@ export function isCup(page, row, col) {
   );
 }
 
-function passable(page, row, col) {
+function passable(page: Course, row: number, col: number): boolean {
   return isOpen(page, row, col) || isCup(page, row, col);
 }
 
 // Rows count about twice as much as columns since cells are tall.
-export function nearCup(page, row, col) {
+export function nearCup(page: Course, row: number, col: number): boolean {
   const { cup } = page;
   const dx = col - (cup.col + (cup.width - 1) / 2);
   const dy = (row - cup.row) * 2;
@@ -47,14 +79,22 @@ export function nearCup(page, row, col) {
 }
 
 // Ball goes opposite the drag, capped at MAX_DRAG.
-export function launchVelocity(dx, dy) {
+export function launchVelocity(
+  dx: number,
+  dy: number
+): Pick<Ball, "vx" | "vy"> {
   const dist = Math.hypot(dx, dy);
   if (dist < MIN_DRAG) return { vx: 0, vy: 0 };
   const scale = (Math.min(dist, MAX_DRAG) / dist) * POWER;
   return { vx: -dx * scale, vy: -dy * scale };
 }
 
-export function step(ball, page, { cw, lh }, dt) {
+export function step(
+  ball: Ball,
+  page: Course,
+  { cw, lh }: Metrics,
+  dt: number
+): Ball {
   let { x, y, vx, vy } = ball;
   const cells = Math.max(Math.abs((vx * dt) / cw), Math.abs((vy * dt) / lh));
   const subSteps = Math.max(1, Math.ceil(cells / MAX_SUBSTEP));
@@ -85,7 +125,12 @@ export function step(ball, page, { cw, lh }, dt) {
 }
 
 // Nearest whitespace cell, searching outward ring by ring.
-export function nearestOpen(page, row, col, maxRadius = 60) {
+export function nearestOpen(
+  page: Course,
+  row: number,
+  col: number,
+  maxRadius = 60
+): Cell | null {
   for (let r = 0; r <= maxRadius; r++) {
     for (let dr = -r; dr <= r; dr++) {
       for (let dc = -r; dc <= r; dc++) {
@@ -100,7 +145,7 @@ export function nearestOpen(page, row, col, maxRadius = 60) {
 }
 
 // Keeps the ball's row and its offset from the page centre across a resize.
-export function remap(ball, from, to) {
+export function remap(ball: Ball, from: Course, to: Course): Ball {
   if (ball.sunk) return ball;
   if (ball.onTee) return atTee(to);
   const x = ball.x - from.center + to.center;

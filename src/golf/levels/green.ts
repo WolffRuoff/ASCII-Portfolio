@@ -1,5 +1,7 @@
+import type { Level } from "./types";
+
 // Level 1: an open green beside the bio, tee top-left and cup bottom-right.
-const green = {
+const green: Level = {
   name: "The Green",
   slot: [
     `  ______________________________________________________  `,

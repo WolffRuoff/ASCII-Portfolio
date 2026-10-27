@@ -1,24 +1,42 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type {
+  PointerEvent as ReactPointerEvent,
+  PointerEventHandler,
+  RefObject,
+} from "react";
 import { atTee, launchVelocity, remap, step } from "./physics";
+import type { Ball, Course, Metrics } from "./physics";
 
-function measure(pre) {
-  const ball = pre.querySelector(".golf-ball");
+export interface Golf {
+  sunk: boolean;
+  // -1 once the ball is sunk.
+  row: number;
+  col: number;
+  onPointerDown: PointerEventHandler<HTMLElement>;
+}
+
+function measure(pre: HTMLElement | null): Metrics {
+  const ball = pre?.querySelector(".golf-ball");
   return {
     cw: ball ? ball.getBoundingClientRect().width : 7,
-    lh: parseFloat(getComputedStyle(pre).lineHeight) || 13,
+    lh: (pre && parseFloat(getComputedStyle(pre).lineHeight)) || 13,
   };
 }
 
 // Drives the ball: drag to aim, release to putt, animate until it stops or sinks.
-export function useGolf(page, preRef, levelIndex) {
+export function useGolf(
+  page: Course,
+  preRef: RefObject<HTMLPreElement>,
+  levelIndex: number
+): Golf {
   const [ball, setBall] = useState(() => atTee(page));
   const ballRef = useRef(ball);
   const pageRef = useRef(page);
   const levelRef = useRef(levelIndex);
-  const metricsRef = useRef(null);
+  const metricsRef = useRef<Metrics | null>(null);
   const frameRef = useRef(0);
 
-  const update = useCallback((next) => {
+  const update = useCallback((next: Ball) => {
     ballRef.current = next;
     setBall(next);
   }, []);
@@ -39,7 +57,7 @@ export function useGolf(page, preRef, levelIndex) {
 
   const run = useCallback(() => {
     let last = performance.now();
-    const frame = (now) => {
+    const frame = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       if (!metricsRef.current) metricsRef.current = measure(preRef.current);
@@ -52,7 +70,7 @@ export function useGolf(page, preRef, levelIndex) {
   }, [preRef, update]);
 
   const onPointerDown = useCallback(
-    (e) => {
+    (e: ReactPointerEvent<HTMLElement>) => {
       const current = ballRef.current;
       if (current.sunk || current.vx || current.vy) return;
       e.preventDefault();
@@ -60,11 +78,11 @@ export function useGolf(page, preRef, levelIndex) {
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
 
-      const swallowClick = (ev) => {
+      const swallowClick = (ev: MouseEvent) => {
         ev.preventDefault();
         ev.stopPropagation();
       };
-      const onUp = (ev) => {
+      const onUp = (ev: PointerEvent) => {
         window.removeEventListener("pointerup", onUp);
         window.removeEventListener("pointercancel", onCancel);
         // Stops a release over a link from following it.

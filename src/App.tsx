@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import type { CSSProperties } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import { useGolf } from "./golf/useGolf";
 import { nearCup } from "./golf/physics";
 import { LEVELS } from "./golf/levels";
 import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
+import type { Sizing } from "./Helpers";
 
 // Fallback character width relative to font size, used if measuring fails.
 const CHAR_ASPECT = 1229 / 2048;
@@ -19,7 +21,7 @@ function viewportWidth() {
 }
 
 // Measured with a hidden <pre> so it uses the same font as the page.
-function charWidth(fontSize) {
+function charWidth(fontSize: number): number {
   const probe = document.createElement("pre");
   probe.style.cssText =
     "position:absolute;visibility:hidden;margin:0;" +
@@ -32,12 +34,12 @@ function charWidth(fontSize) {
 }
 
 // Columns that fit across the page at this font size.
-function widthForFont(fontSize) {
+function widthForFont(fontSize: number): number {
   return Math.floor(viewportWidth() / charWidth(fontSize));
 }
 
 // Largest font size at which `requiredColumns` fit.
-function fitSizing(requiredColumns) {
+function fitSizing(requiredColumns: number): Sizing {
   for (let fontSize = MAX_FONT_SIZE; fontSize > MIN_FONT_SIZE; fontSize--) {
     const width = widthForFont(fontSize);
     if (width >= requiredColumns) return { fontSize, width };
@@ -65,7 +67,7 @@ function App() {
     };
   }, [requiredColumns]);
 
-  const appStyle = {
+  const appStyle: CSSProperties = {
     textAlign: "left",
     margin: 0,
     fontSize: sizing.fontSize + "px",
@@ -85,7 +87,7 @@ function App() {
     () => applyLevel(basePage, level, !flagPulled),
     [basePage, level, flagPulled]
   );
-  const preRef = useRef(null);
+  const preRef = useRef<HTMLPreElement>(null);
   const golf = useGolf(page, preRef, levelIndex);
 
   // Pull the flag once the ball gets close; it stays out after that.

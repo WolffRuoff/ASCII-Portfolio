@@ -1,8 +1,9 @@
 import { atTee, launchVelocity, nearCup, remap, step } from "./physics";
+import type { Ball, Course } from "./physics";
 
 const metrics = { cw: 10, lh: 10 };
 
-function makePage(grid, center = 5) {
+function makePage(grid: string[], center = 5): Course {
   const row = grid.findIndex((line) => line.includes("T"));
   const tee = { row, col: grid[row].indexOf("T") };
   const cupRow = grid.findIndex((line) => line.includes("(_)"));
@@ -14,7 +15,7 @@ function makePage(grid, center = 5) {
   };
 }
 
-function roll(ball, page, frames = 600) {
+function roll(ball: Ball, page: Course, frames = 600): Ball {
   for (let i = 0; i < frames && !ball.sunk && (ball.vx || ball.vy); i++) {
     ball = step(ball, page, metrics, 1 / 60);
   }

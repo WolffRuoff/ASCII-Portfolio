@@ -1,7 +1,8 @@
-import { toLines } from "../Helpers";
+import { joinParts } from "../Helpers";
+import type { Helpers } from "../Helpers";
 
-const Photo = ({ helpers }) => {
-  return toLines(
+const Photo = ({ helpers }: { helpers: Helpers }): string[] => {
+  return joinParts(
     helpers.AddSpaces([
       `                                                                                                    `,
       `                                          .-==+**++=-.                                               `,

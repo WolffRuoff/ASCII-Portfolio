@@ -1,4 +1,4 @@
-export const GithubName = [
+export const GithubName: string[] = [
   " _______ __ __   _______         __    ",
   "|     __|__|  |_|   |   |.--.--.|  |--.",
   "|    |  |  |   _|       ||  |  ||  _  |",

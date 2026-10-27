@@ -1,11 +1,17 @@
-import { toLines } from "../Helpers";
+import { joinParts } from "../Helpers";
+import type { Helpers } from "../Helpers";
 
-const Header = ({ width, helpers }) => {
+interface HeaderProps {
+  width: number;
+  helpers: Helpers;
+}
+
+const Header = ({ width, helpers }: HeaderProps): string[] => {
   const headBarAbsolute = `   ` + "_".repeat(Math.max(0, width - 6));
   return [
     headBarAbsolute,
     "  |" + headBarAbsolute.slice(3) + "|  ",
-    ...toLines(
+    ...joinParts(
       helpers.AddSpaces(
         [
           `_______ __   __                  ______               ___   ___ `,

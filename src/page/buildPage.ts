@@ -3,9 +3,44 @@ import Footer from "../components/Footer";
 import Photo from "../components/Photo";
 import BlankLines from "../components/BlankLines";
 import Button from "../components/Button";
-import { Helpers, toLines } from "../Helpers";
+import { Helpers, joinParts } from "../Helpers";
+import type { Sizing } from "../Helpers";
 import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
+
+export interface Segment {
+  text: string;
+  href?: string;
+}
+
+export type PageLine = Segment[];
+
+export type SectionName =
+  | "header"
+  | "photo"
+  | "bio"
+  | "slot"
+  | "buttons"
+  | "footer";
+
+export interface Section {
+  row: number;
+  height: number;
+}
+
+export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
+  slot: Section & { col: number };
+};
+
+export interface Page {
+  lines: PageLine[];
+  // Plain text of each line, for looking up cells.
+  grid: string[];
+  sections: Sections;
+  left: number;
+  right: number;
+  center: number;
+}
 
 // Marks the slot's top-left cell so it can be found after layout.
 const SLOT_MARK = "\u0001";
@@ -13,25 +48,29 @@ const SLOT_MARK = "\u0001";
 // Builds the whole page as lines of segments ({ text, href? }). `slot` is the
 // art shown beside the bio. Also returns where each section starts so levels
 // can anchor to them.
-export function buildPage(sizing, precursor, afterCursor, slot) {
+export function buildPage(
+  sizing: Sizing,
+  precursor: string,
+  afterCursor: string,
+  slot: string[]
+): Page {
   const helpers = new Helpers(sizing, precursor, afterCursor);
   const width = sizing.width;
   const gap = () => BlankLines({ width, amount: 3, precursor, afterCursor });
   const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
-  const rows = [];
-  const sections = {};
-  const add = (name, sectionRows) => {
-    if (name) sections[name] = { row: rows.length, height: sectionRows.length };
+  const rows: (string | PageLine)[] = [];
+  const add = (sectionRows: (string | PageLine)[]): Section => {
+    const section = { row: rows.length, height: sectionRows.length };
     rows.push(...sectionRows);
+    return section;
   };
-  add("header", Header({ width, helpers }));
-  add(null, gap());
-  add("photo", Photo({ helpers }));
-  add(null, gap());
-  add(
-    "bio",
-    toLines(
+  const header = add(Header({ width, helpers }));
+  add(gap());
+  const photo = add(Photo({ helpers }));
+  add(gap());
+  const bio = add(
+    joinParts(
       helpers.AddSpacesForTwo(
         [
           "Hello welcome to my page!                                       ",
@@ -46,13 +85,13 @@ export function buildPage(sizing, precursor, afterCursor, slot) {
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        marked
+        marked,
+        true
       )
     )
   );
-  add(null, gap());
-  add(
-    "buttons",
+  add(gap());
+  const buttons = add(
     Button({
       helpers,
       lines1: GithubCat,
@@ -61,10 +100,10 @@ export function buildPage(sizing, precursor, afterCursor, slot) {
       url2: "https://github.com/WolffRuoff",
     })
   );
-  add(null, gap());
-  add("footer", Footer({ width }));
+  add(gap());
+  const footer = add(Footer({ width }));
 
-  const lines = rows.map((row) =>
+  const lines = rows.map((row): PageLine =>
     typeof row === "string" ? [{ text: row }] : row
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
@@ -77,12 +116,18 @@ export function buildPage(sizing, precursor, afterCursor, slot) {
     text: s.text.replace(SLOT_MARK, slot[0][0]),
   }));
   grid[slotRow] = grid[slotRow].replace(SLOT_MARK, slot[0][0]);
-  sections.slot = { row: slotRow, col: slotCol, height: slot.length };
 
   return {
     lines,
     grid,
-    sections,
+    sections: {
+      header,
+      photo,
+      bio,
+      buttons,
+      footer,
+      slot: { row: slotRow, col: slotCol, height: slot.length },
+    },
     left: precursor.length,
     right: width - afterCursor.length - 1,
     center: Math.floor(width / 2),
