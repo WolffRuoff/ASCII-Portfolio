@@ -1,4 +1,4 @@
-import type { Helpers, LineParts } from "../Helpers";
+import type { Helpers } from "../Helpers";
 import type { PageLine } from "../page/buildPage";
 
 interface ButtonProps {
@@ -16,12 +16,9 @@ const Button = ({
   lines2,
   url2,
 }: ButtonProps): PageLine[] => {
-  let lines: LineParts[];
-  if (!lines2) {
-    lines = helpers.AddSpaces(lines1, false);
-  } else {
-    lines = helpers.AddSpacesForTwo(lines1, lines2, false);
-  }
+  const lines = lines2
+    ? helpers.AddSpacesForTwo(lines1, lines2)
+    : helpers.AddSpaces(lines1);
   if (lines[0].length === 3) {
     return lines.map((line) => [
       { text: line[0] },

@@ -1,10 +1,8 @@
 import type { Page, PageLine } from "../../page/buildPage";
-import type { Cell, Cup } from "../physics";
+import type { Cell, Course } from "../physics";
 import type { Anchor, Level } from "./types";
 
-export interface LevelPage extends Page {
-  tee: Cell;
-  cup: Cup;
+export interface LevelPage extends Page, Course {
   dropped: number;
 }
 

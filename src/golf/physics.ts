@@ -35,11 +35,6 @@ export interface Ball {
   onTee: boolean;
 }
 
-export interface Velocity {
-  vx: number;
-  vy: number;
-}
-
 // Character width and line height, in px.
 export interface Metrics {
   cw: number;
@@ -84,7 +79,10 @@ export function nearCup(page: Course, row: number, col: number): boolean {
 }
 
 // Ball goes opposite the drag, capped at MAX_DRAG.
-export function launchVelocity(dx: number, dy: number): Velocity {
+export function launchVelocity(
+  dx: number,
+  dy: number
+): Pick<Ball, "vx" | "vy"> {
   const dist = Math.hypot(dx, dy);
   if (dist < MIN_DRAG) return { vx: 0, vy: 0 };
   const scale = (Math.min(dist, MAX_DRAG) / dist) * POWER;

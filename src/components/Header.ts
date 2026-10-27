@@ -1,4 +1,4 @@
-import { toLines } from "../Helpers";
+import { joinParts } from "../Helpers";
 import type { Helpers } from "../Helpers";
 
 interface HeaderProps {
@@ -11,7 +11,7 @@ const Header = ({ width, helpers }: HeaderProps): string[] => {
   return [
     headBarAbsolute,
     "  |" + headBarAbsolute.slice(3) + "|  ",
-    ...toLines(
+    ...joinParts(
       helpers.AddSpaces(
         [
           `_______ __   __                  ______               ___   ___ `,

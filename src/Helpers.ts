@@ -3,7 +3,7 @@ export interface Sizing {
   width: number;
 }
 
-// Uncombined output: each line split into padding and content pieces.
+// One laid-out line, split into padding and content pieces.
 export type LineParts = string[];
 
 export class Helpers {
@@ -13,15 +13,12 @@ export class Helpers {
     public afterCursor: string
   ) {}
 
-  AddSpaces(lines: string[], combine?: true): string;
-  AddSpaces(lines: string[], combine: false): LineParts[];
-  AddSpaces(lines: string[], combine = true): string | LineParts[] {
-    const newLines: (string | LineParts)[] = [];
-    for (var i = 0; i < lines.length; i++) {
+  AddSpaces(lines: string[]): LineParts[] {
+    return lines.map((line) => {
       const leftPad = Math.max(
         0,
         Math.floor(
-          (this.sizing.width - 1 - this.precursor.length - lines[i].length) / 2
+          (this.sizing.width - 1 - this.precursor.length - line.length) / 2
         )
       );
       const newPrecursor = this.precursor + " ".repeat(leftPad);
@@ -29,38 +26,20 @@ export class Helpers {
         0,
         Math.floor(
           this.sizing.width -
-            (newPrecursor.length + lines[i].length) -
+            (newPrecursor.length + line.length) -
             this.afterCursor.length
         )
       );
-      if (combine) {
-        newLines.push(
-          newPrecursor + lines[i] + " ".repeat(rightPad) + this.afterCursor
-        );
-      } else {
-        newLines.push([
-          newPrecursor,
-          lines[i],
-          " ".repeat(rightPad) + this.afterCursor,
-        ]);
-      }
-    }
-    if (combine) newLines.push("");
-    return combine ? newLines.join("\n") : (newLines as LineParts[]);
+      return [newPrecursor, line, " ".repeat(rightPad) + this.afterCursor];
+    });
   }
 
-  AddSpacesForTwo(lines1: string[], lines2: string[], combine?: true): string;
+  // `spacer` adds a blank line between the columns when they're stacked.
   AddSpacesForTwo(
     lines1: string[],
     lines2: string[],
-    combine: false
-  ): LineParts[];
-  AddSpacesForTwo(
-    lines1: string[],
-    lines2: string[],
-    combine = true
-  ): string | LineParts[] {
-    const newLines: (string | LineParts)[] = [];
+    spacer = false
+  ): LineParts[] {
     // Make sure each lines only has 1 length
     const gapWidth = Math.floor(
       (this.sizing.width -
@@ -70,17 +49,17 @@ export class Helpers {
         lines2[0].length) /
         3
     );
-    // If window is too small default to only 1 column
-    if (gapWidth <= 1 || window.innerWidth < 500) {
-      return this.stacked(lines1, lines2, combine);
-    }
-    const gap = " ".repeat(gapWidth);
+    const gap = " ".repeat(Math.max(0, gapWidth));
     const header = this.precursor + gap + lines1[0] + gap + lines2[0];
     const afterLength = Math.floor(
       this.sizing.width - header.length - this.afterCursor.length
     );
-    if (afterLength <= 0) {
-      return this.stacked(lines1, lines2, combine);
+    // If window is too small default to only 1 column
+    if (gapWidth <= 1 || window.innerWidth < 500 || afterLength <= 0) {
+      return [
+        ...this.AddSpaces(spacer ? [...lines1, " "] : lines1),
+        ...this.AddSpaces(lines2),
+      ];
     }
 
     if (lines1.length > lines2.length) {
@@ -103,52 +82,16 @@ export class Helpers {
       }
     }
 
-    for (var j = 0; j < lines1.length; j++) {
-      let txt: string | LineParts;
-      if (combine) {
-        txt =
-          this.precursor +
-          gap +
-          lines1[j] +
-          gap +
-          lines2[j] +
-          " ".repeat(afterLength) +
-          this.afterCursor;
-      } else {
-        txt = [
-          this.precursor + gap,
-          lines1[j],
-          gap,
-          lines2[j],
-          " ".repeat(afterLength) + this.afterCursor,
-        ];
-      }
-      newLines.push(txt);
-    }
-    if (combine) newLines.push("");
-    return combine ? newLines.join("\n") : (newLines as LineParts[]);
-  }
-
-  // Fallback for AddSpacesForTwo when both columns don't fit side by side.
-  private stacked(
-    lines1: string[],
-    lines2: string[],
-    combine: boolean
-  ): string | LineParts[] {
-    if (!combine) {
-      return [
-        ...this.AddSpaces(lines1, false),
-        ...this.AddSpaces(lines2, false),
-      ];
-    }
-    lines1.push(" ");
-    return this.AddSpaces(lines1) + this.AddSpaces(lines2);
+    return lines1.map((line, j) => [
+      this.precursor + gap,
+      line,
+      gap,
+      lines2[j],
+      " ".repeat(afterLength) + this.afterCursor,
+    ]);
   }
 }
 
-// Splits combined AddSpaces output into lines, dropping the trailing newline.
-export function toLines(text: string): string[] {
-  const lines = text.split("\n");
-  if (lines[lines.length - 1] === "") lines.pop();
-  return lines;
+export function joinParts(lines: LineParts[]): string[] {
+  return lines.map((parts) => parts.join(""));
 }

@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import Photo from "../components/Photo";
 import BlankLines from "../components/BlankLines";
 import Button from "../components/Button";
-import { Helpers, toLines } from "../Helpers";
+import { Helpers, joinParts } from "../Helpers";
 import type { Sizing } from "../Helpers";
 import { GithubName } from "../ascii/GithubName";
 import { GithubCat } from "../ascii/GithubCat";
@@ -60,22 +60,17 @@ export function buildPage(
   const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
   const rows: (string | PageLine)[] = [];
-  // Every section is filled in below before it's returned.
-  const sections = {} as Sections;
-  const add = (
-    name: Exclude<SectionName, "slot"> | null,
-    sectionRows: (string | PageLine)[]
-  ) => {
-    if (name) sections[name] = { row: rows.length, height: sectionRows.length };
+  const add = (sectionRows: (string | PageLine)[]): Section => {
+    const section = { row: rows.length, height: sectionRows.length };
     rows.push(...sectionRows);
+    return section;
   };
-  add("header", Header({ width, helpers }));
-  add(null, gap());
-  add("photo", Photo({ helpers }));
-  add(null, gap());
-  add(
-    "bio",
-    toLines(
+  const header = add(Header({ width, helpers }));
+  add(gap());
+  const photo = add(Photo({ helpers }));
+  add(gap());
+  const bio = add(
+    joinParts(
       helpers.AddSpacesForTwo(
         [
           "Hello welcome to my page!                                       ",
@@ -90,13 +85,13 @@ export function buildPage(
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        marked
+        marked,
+        true
       )
     )
   );
-  add(null, gap());
-  add(
-    "buttons",
+  add(gap());
+  const buttons = add(
     Button({
       helpers,
       lines1: GithubCat,
@@ -105,8 +100,8 @@ export function buildPage(
       url2: "https://github.com/WolffRuoff",
     })
   );
-  add(null, gap());
-  add("footer", Footer({ width }));
+  add(gap());
+  const footer = add(Footer({ width }));
 
   const lines = rows.map((row): PageLine =>
     typeof row === "string" ? [{ text: row }] : row
@@ -121,12 +116,18 @@ export function buildPage(
     text: s.text.replace(SLOT_MARK, slot[0][0]),
   }));
   grid[slotRow] = grid[slotRow].replace(SLOT_MARK, slot[0][0]);
-  sections.slot = { row: slotRow, col: slotCol, height: slot.length };
 
   return {
     lines,
     grid,
-    sections,
+    sections: {
+      header,
+      photo,
+      bio,
+      buttons,
+      footer,
+      slot: { row: slotRow, col: slotCol, height: slot.length },
+    },
     left: precursor.length,
     right: width - afterCursor.length - 1,
     center: Math.floor(width / 2),

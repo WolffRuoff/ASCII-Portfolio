@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent, RefObject } from "react";
+import type {
+  PointerEvent as ReactPointerEvent,
+  PointerEventHandler,
+  RefObject,
+} from "react";
 import { atTee, launchVelocity, remap, step } from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
 
@@ -8,7 +12,7 @@ export interface Golf {
   // -1 once the ball is sunk.
   row: number;
   col: number;
-  onPointerDown: (e: ReactPointerEvent<HTMLElement>) => void;
+  onPointerDown: PointerEventHandler<HTMLElement>;
 }
 
 function measure(pre: HTMLElement | null): Metrics {
