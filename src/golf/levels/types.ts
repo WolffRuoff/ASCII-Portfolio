@@ -17,6 +17,6 @@ export interface Level {
   name: string;
   slot?: string[];
   art?: Art[];
-  tee: Anchor;
+  tee?: Anchor;
   cup: Anchor;
 }

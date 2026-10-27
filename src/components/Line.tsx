@@ -19,7 +19,8 @@ interface LineProps {
   segments: PageLine;
   // -1 when the ball isn't on this row.
   ballCol: number;
-  onBallDown: PointerEventHandler<HTMLElement>;
+  // Left out while the ball can't be hit.
+  onBallDown?: PointerEventHandler<HTMLElement>;
   newline: boolean;
 }
 

@@ -1,12 +1,13 @@
 import type { Page, PageLine } from "../../page/buildPage";
 import type { Cell, Course } from "../physics";
-import type { Anchor, Level } from "./types";
+import type { Anchor, Art, Level } from "./types";
 
 export interface LevelPage extends Page, Course {
   dropped: number;
 }
 
-// Same size as the old rocket, so a level without a slot keeps the layout.
+// Same size as the old rocket. Every level's slot art draws over it, so the
+// page layout stays put from level to level.
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
 // Turns an anchor into a page row and column.
@@ -42,15 +43,33 @@ function setChar(
   grid[row] = grid[row].slice(0, col) + ch + grid[row].slice(col + 1);
 }
 
+export interface ApplyOptions {
+  // The level played before this one; its cup is this level's default tee.
+  prev?: Level;
+  withFlag?: boolean;
+  // Draws only the art within this share (0 to 1) of the way out from the
+  // tee or the cup, for the level transition.
+  reveal?: { around: "tee" | "cup"; amount: number };
+}
+
+// Where a level's tee is, falling back to the previous level's cup.
+function teeCell(page: Page, level: Level, prev?: Level): Cell {
+  if (level.tee) return resolve(page, level.tee);
+  if (!prev) throw new Error(`${level.name} needs a tee`);
+  const cup = resolve(page, prev.cup);
+  return { row: cup.row, col: cup.col + 1 };
+}
+
 // Draws a level's art, cup and flag onto a built page. `dropped` counts
 // characters that landed outside the frame or on non-blank cells.
 export function applyLevel(
   page: Page,
   level: Level,
-  withFlag = true
+  { prev, withFlag = true, reveal }: ApplyOptions = {}
 ): LevelPage {
   const lines = [...page.lines];
   const grid = [...page.grid];
+  const chars: (Cell & { ch: string })[] = [];
   let dropped = 0;
 
   const draw = (row: number, col: number, text: string) => {
@@ -62,16 +81,18 @@ export function applyLevel(
         dropped++;
         return;
       }
-      setChar(lines, grid, row, c, ch);
+      chars.push({ row, col: c, ch });
     });
   };
 
-  for (const { at, lines: art } of level.art || []) {
+  const art: Art[] = [...(level.art || [])];
+  if (level.slot) art.unshift({ at: { section: "slot" }, lines: level.slot });
+  for (const { at, lines: rows } of art) {
     const origin = resolve(page, at);
-    art.forEach((line, i) => draw(origin.row + i, origin.col, line));
+    rows.forEach((line, i) => draw(origin.row + i, origin.col, line));
   }
 
-  const tee = resolve(page, level.tee);
+  const tee = teeCell(page, level, prev);
   const cup = resolve(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
   draw(cup.row, cup.col, "(_)");
@@ -82,6 +103,17 @@ export function applyLevel(
     // Without the pole the hole gets its top edge.
     draw(cup.row - 1, cup.col + 1, "_");
   }
+
+  let shown = chars;
+  if (reveal) {
+    const center = reveal.around === "tee" ? tee : { ...cup, col: cup.col + 1 };
+    // Rows count twice since cells are about twice as tall as wide.
+    const dist = (c: Cell) =>
+      Math.hypot(c.col - center.col, (c.row - center.row) * 2);
+    const extent = Math.max(0, ...chars.map(dist));
+    shown = chars.filter((c) => dist(c) <= reveal.amount * extent);
+  }
+  for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
   return { ...page, lines, grid, tee, cup: { ...cup, width: 3 }, dropped };
 }

@@ -6,6 +6,7 @@ import { useGolf } from "./golf/useGolf";
 import { nearCup } from "./golf/physics";
 import { LEVELS } from "./golf/levels";
 import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
+import type { ApplyOptions } from "./golf/levels/apply";
 import type { Sizing } from "./Helpers";
 
 // Fallback character width relative to font size, used if measuring fails.
@@ -13,7 +14,29 @@ const CHAR_ASPECT = 1229 / 2048;
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 const MAX_FONT_SIZE = 12;
 const MIN_FONT_SIZE = 1;
-const NEXT_LEVEL_DELAY = 1000;
+// Level transition timings, in ms.
+const SINK_PAUSE = 400;
+const SHRINK_TIME = 500;
+const GROW_TIME = 700;
+
+type Reveal = NonNullable<ApplyOptions["reveal"]>;
+
+// Calls `onFrame` with 0 to 1 over `duration`, eased, then `onDone`.
+// Returns a function that cancels it.
+function tween(
+  duration: number,
+  onFrame: (t: number) => void,
+  onDone: () => void
+): () => void {
+  const start = performance.now();
+  let frame = requestAnimationFrame(function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    onFrame(t * t * (3 - 2 * t));
+    if (t < 1) frame = requestAnimationFrame(tick);
+    else onDone();
+  });
+  return () => cancelAnimationFrame(frame);
+}
 
 // Excludes the scrollbar, unlike window.innerWidth.
 function viewportWidth() {
@@ -78,14 +101,22 @@ function App() {
 
   const [levelIndex, setLevelIndex] = useState(0);
   const [flagPulled, setFlagPulled] = useState(false);
+  // Set while a level shrinks away or grows in.
+  const [reveal, setReveal] = useState<Reveal | null>(null);
   const level = LEVELS[levelIndex];
+  const prevLevel = LEVELS[levelIndex - 1];
   const basePage = useMemo(
-    () => buildPage(sizing, precursor, afterCursor, level.slot || BLANK_SLOT),
-    [sizing, precursor, afterCursor, level]
+    () => buildPage(sizing, precursor, afterCursor, BLANK_SLOT),
+    [sizing, precursor, afterCursor]
   );
   const page = useMemo(
-    () => applyLevel(basePage, level, !flagPulled),
-    [basePage, level, flagPulled]
+    () =>
+      applyLevel(basePage, level, {
+        prev: prevLevel,
+        withFlag: !flagPulled,
+        reveal: reveal || undefined,
+      }),
+    [basePage, level, prevLevel, flagPulled, reveal]
   );
   const preRef = useRef<HTMLPreElement>(null);
   const golf = useGolf(page, preRef, levelIndex);
@@ -96,16 +127,37 @@ function App() {
     if (ballNearCup) setFlagPulled(true);
   }, [ballNearCup]);
 
-  // After a sink, move on to the next level if there is one.
+  // After a sink, shrink the level into its hole, then switch levels.
   const hasNextLevel = levelIndex + 1 < LEVELS.length;
   useEffect(() => {
     if (!golf.sunk || !hasNextLevel) return;
+    let cancel = () => {};
     const timer = setTimeout(() => {
-      setLevelIndex((i) => i + 1);
-      setFlagPulled(false);
-    }, NEXT_LEVEL_DELAY);
-    return () => clearTimeout(timer);
+      cancel = tween(
+        SHRINK_TIME,
+        (t) => setReveal({ around: "cup", amount: 1 - t }),
+        () => {
+          setReveal({ around: "tee", amount: 0 });
+          setLevelIndex((i) => i + 1);
+          setFlagPulled(false);
+        }
+      );
+    }, SINK_PAUSE);
+    return () => {
+      clearTimeout(timer);
+      cancel();
+    };
   }, [golf.sunk, hasNextLevel]);
+
+  // Grow the new level out from the ball, which sits where the last hole was.
+  useEffect(() => {
+    if (levelIndex === 0) return;
+    return tween(
+      GROW_TIME,
+      (t) => setReveal({ around: "tee", amount: t }),
+      () => setReveal(null)
+    );
+  }, [levelIndex]);
 
   return (
     <div style={appStyle}>
@@ -115,7 +167,7 @@ function App() {
             key={row}
             segments={segments}
             ballCol={row === golf.row ? golf.col : -1}
-            onBallDown={golf.onPointerDown}
+            onBallDown={reveal ? undefined : golf.onPointerDown}
             newline={row < page.lines.length - 1}
           />
         ))}
