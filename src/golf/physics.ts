@@ -6,7 +6,7 @@ export const FRICTION = 1.5;
 export const BOUNCE = 0.8;
 export const STOP_SPEED = 15;
 const MAX_SUBSTEP = 0.3;
-// Distance from the cup, in columns, at which the flag is pulled.
+/** Distance from the cup, in columns, at which the flag is pulled. */
 export const PIN_RADIUS = 8;
 
 export interface Cell {
@@ -18,7 +18,7 @@ export interface Cup extends Cell {
   width: number;
 }
 
-// The parts of a level page the physics reads.
+/** The parts of a level page the physics reads. */
 export interface Course {
   grid: string[];
   tee: Cell;
@@ -35,7 +35,7 @@ export interface Ball {
   onTee: boolean;
 }
 
-// Character width and line height, in px.
+/** Character width and line height, in px. */
 export interface Metrics {
   cw: number;
   lh: number;
@@ -56,7 +56,7 @@ export function isOpen(page: Course, row: number, col: number): boolean {
   return page.grid[row]?.[col] === " ";
 }
 
-// The cup row plus the cell above its middle, where the hole's top sits.
+/** The cup row plus the cell above its middle, where the hole's top sits. */
 export function isCup(page: Course, row: number, col: number): boolean {
   const { cup } = page;
   const middle = cup.col + Math.floor(cup.width / 2);
@@ -70,7 +70,7 @@ function passable(page: Course, row: number, col: number): boolean {
   return isOpen(page, row, col) || isCup(page, row, col);
 }
 
-// Rows count about twice as much as columns since cells are tall.
+/** Rows count about twice as much as columns since cells are tall. */
 export function nearCup(page: Course, row: number, col: number): boolean {
   const { cup } = page;
   const dx = col - (cup.col + (cup.width - 1) / 2);
@@ -78,7 +78,7 @@ export function nearCup(page: Course, row: number, col: number): boolean {
   return Math.hypot(dx, dy) <= PIN_RADIUS;
 }
 
-// Ball goes opposite the drag, capped at MAX_DRAG.
+/** Ball goes opposite the drag, capped at MAX_DRAG. */
 export function launchVelocity(
   dx: number,
   dy: number
@@ -94,7 +94,7 @@ function isSlash(page: Course, row: number, col: number): boolean {
   return ch === "/" || ch === "\\";
 }
 
-// Bounces (vx, vy) off a wall with unit normal (nx, ny).
+/** Bounces (vx, vy) off a wall with unit normal (nx, ny). */
 function reflect(vx: number, vy: number, nx: number, ny: number) {
   const into = vx * nx + vy * ny;
   return [(vx - 2 * into * nx) * BOUNCE, (vy - 2 * into * ny) * BOUNCE];
@@ -165,7 +165,7 @@ export function step(
   return { ...ball, x, y, vx, vy };
 }
 
-// Nearest whitespace cell, searching outward ring by ring.
+/** Nearest whitespace cell, searching outward ring by ring. */
 export function nearestOpen(
   page: Course,
   row: number,
@@ -185,7 +185,7 @@ export function nearestOpen(
   return null;
 }
 
-// Keeps the ball's row and its offset from the page centre across a resize.
+/** Keeps the ball's row and its offset from the page centre across a resize. */
 export function remap(ball: Ball, from: Course, to: Course): Ball {
   if (ball.sunk) return ball;
   if (ball.onTee) return atTee(to);

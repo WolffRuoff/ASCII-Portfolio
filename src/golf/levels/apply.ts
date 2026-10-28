@@ -6,10 +6,10 @@ export interface LevelPage extends Page, Course {
   dropped: number;
 }
 
-// Every level's slot art draws over this, so the layout stays put.
+/** Every level's slot art draws over this, so the layout stays put. */
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
-// Turns an anchor into a page row and column.
+/** Turns an anchor into a page row and column. */
 export function resolve(
   page: Page,
   { section, row = 0, col = 0, from = "left" }: Anchor
@@ -43,15 +43,17 @@ function setChar(
 }
 
 export interface ApplyOptions {
-  // The level played before this one; its cup is this level's default tee.
+  /** The level played before this one; its cup is this level's default tee. */
   prev?: Level;
   withFlag?: boolean;
-  // Draws only the art within this share (0 to 1) of the way out from the
-  // tee or the cup, for the level transition.
+  /**
+   * Draws only the art within this share (0 to 1) of the way out from the tee
+   * or the cup, for the level transition.
+   */
   reveal?: { around: "tee" | "cup"; amount: number };
 }
 
-// Where a level's tee is, falling back to the previous level's cup.
+/** Where a level's tee is, falling back to the previous level's cup. */
 function teeCell(page: Page, level: Level, prev?: Level): Cell {
   if (level.tee) return resolve(page, level.tee);
   if (!prev) throw new Error(`${level.name} needs a tee`);
@@ -59,8 +61,10 @@ function teeCell(page: Page, level: Level, prev?: Level): Cell {
   return { row: cup.row, col: cup.col + 1 };
 }
 
-// Draws a level's art, cup and flag onto a built page. `dropped` counts
-// characters that landed outside the frame or on non-blank cells.
+/**
+ * Draws a level's art, cup and flag onto a built page. `dropped` counts
+ * characters that landed outside the frame or on non-blank cells.
+ */
 export function applyLevel(
   page: Page,
   level: Level,

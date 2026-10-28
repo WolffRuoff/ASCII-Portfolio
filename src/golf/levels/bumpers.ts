@@ -1,6 +1,6 @@
 import type { Level } from "./types";
 
-// Level 3: two rooms with corner bumpers and two bars guarding the cup.
+/** Level 3: two rooms with corner bumpers and two bars guarding the cup. */
 const bumpers: Level = {
   name: "Bumpers",
   slot: [

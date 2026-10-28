@@ -5,7 +5,7 @@ import { isCup } from "../physics";
 import type { LevelPage } from "./apply";
 import type { Level } from "./types";
 
-// Page widths to check, side by side and stacked (narrow window).
+/** Page widths to check, side by side and stacked (narrow window). */
 const LAYOUTS: [string, number, number][] = [
   ["side by side, 112 columns", 112, 1024],
   ["side by side, 177 columns", 177, 1600],
@@ -27,7 +27,7 @@ function build(
   return applyLevel(base, level, { prev });
 }
 
-// Cells the ball can roll to from the tee, and whether that includes the cup.
+/** Cells reachable from the tee, and whether the cup is one of them. */
 function explore(page: LevelPage) {
   const seen = new Set<string>();
   let reachesCup = false;

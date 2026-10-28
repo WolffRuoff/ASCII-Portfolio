@@ -14,16 +14,16 @@ function wrap(segment: Segment, children: ReactNode, key?: number) {
   );
 }
 
-// One row of the page; draws the ball over its column when it's on this row.
 interface LineProps {
   segments: PageLine;
-  // -1 when the ball isn't on this row.
+  /** -1 when the ball isn't on this row. */
   ballCol: number;
-  // Left out while the ball can't be hit.
+  /** Left out while the ball can't be hit. */
   onBallDown?: PointerEventHandler<HTMLElement>;
   newline: boolean;
 }
 
+/** One row of the page, with the ball drawn over its column if it's here. */
 const Line = memo(({ segments, ballCol, onBallDown, newline }: LineProps) => {
   let offset = 0;
   const parts = segments.map((segment, i) => {

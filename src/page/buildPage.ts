@@ -34,7 +34,7 @@ export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
 
 export interface Page {
   lines: PageLine[];
-  // Plain text of each line, for looking up cells.
+  /** Plain text of each line, for looking up cells. */
   grid: string[];
   sections: Sections;
   left: number;
@@ -42,12 +42,14 @@ export interface Page {
   center: number;
 }
 
-// Marks the slot's top-left cell so it can be found after layout.
+/** Marks the slot's top-left cell so it can be found after layout. */
 const SLOT_MARK = "\u0001";
 
-// Builds the whole page as lines of segments ({ text, href? }). `slot` is the
-// art shown beside the bio. Also returns where each section starts so levels
-// can anchor to them.
+/**
+ * Builds the whole page as lines of segments ({ text, href? }). `slot` is the
+ * art shown beside the bio. Also returns where each section starts so levels
+ * can anchor to them.
+ */
 export function buildPage(
   sizing: Sizing,
   precursor: string,

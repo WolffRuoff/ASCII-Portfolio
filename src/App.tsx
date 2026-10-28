@@ -9,7 +9,7 @@ import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
 import type { ApplyOptions } from "./golf/levels/apply";
 import type { Sizing } from "./Helpers";
 
-// Fallback character width relative to font size, used if measuring fails.
+/** Fallback character width relative to font size, used if measuring fails. */
 const CHAR_ASPECT = 1229 / 2048;
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 const MAX_FONT_SIZE = 12;
@@ -21,8 +21,10 @@ const GROW_TIME = 700;
 
 type Reveal = NonNullable<ApplyOptions["reveal"]>;
 
-// Calls `onFrame` with 0 to 1 over `duration`, eased, then `onDone`.
-// Returns a function that cancels it.
+/**
+ * Calls `onFrame` with 0 to 1 over `duration`, eased, then `onDone`. Returns a
+ * function that cancels it.
+ */
 function tween(
   duration: number,
   onFrame: (t: number) => void,
@@ -38,12 +40,12 @@ function tween(
   return () => cancelAnimationFrame(frame);
 }
 
-// Excludes the scrollbar, unlike window.innerWidth.
+/** Excludes the scrollbar, unlike window.innerWidth. */
 function viewportWidth() {
   return document.documentElement.clientWidth || window.innerWidth;
 }
 
-// Measured with a hidden <pre> so it uses the same font as the page.
+/** Measured with a hidden <pre> so it uses the same font as the page. */
 function charWidth(fontSize: number): number {
   const probe = document.createElement("pre");
   probe.style.cssText =
@@ -56,12 +58,12 @@ function charWidth(fontSize: number): number {
   return measured || fontSize * CHAR_ASPECT;
 }
 
-// Columns that fit across the page at this font size.
+/** Columns that fit across the page at this font size. */
 function widthForFont(fontSize: number): number {
   return Math.floor(viewportWidth() / charWidth(fontSize));
 }
 
-// Largest font size at which `requiredColumns` fit.
+/** Largest font size at which `requiredColumns` fit. */
 function fitSizing(requiredColumns: number): Sizing {
   for (let fontSize = MAX_FONT_SIZE; fontSize > MIN_FONT_SIZE; fontSize--) {
     const width = widthForFont(fontSize);

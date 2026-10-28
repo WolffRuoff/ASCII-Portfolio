@@ -9,7 +9,7 @@ import type { Ball, Course, Metrics } from "./physics";
 
 export interface Golf {
   sunk: boolean;
-  // -1 once the ball is sunk.
+  /** -1 once the ball is sunk. */
   row: number;
   col: number;
   onPointerDown: PointerEventHandler<HTMLElement>;
@@ -23,7 +23,7 @@ function measure(pre: HTMLElement | null): Metrics {
   };
 }
 
-// Drives the ball: drag to aim, release to putt, animate until it stops or sinks.
+/** Drives the ball: drag to aim, release to putt, animate until it stops. */
 export function useGolf(
   page: Course,
   preRef: RefObject<HTMLPreElement>,

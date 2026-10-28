@@ -3,7 +3,7 @@ export interface Sizing {
   width: number;
 }
 
-// One laid-out line, split into padding and content pieces.
+/** One laid-out line, split into padding and content pieces. */
 export type LineParts = string[];
 
 export class Helpers {

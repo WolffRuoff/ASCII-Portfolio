@@ -1,6 +1,6 @@
 import type { Level } from "./types";
 
-// Level 2: the green bent into a right angle, cup top-left.
+/** Level 2: the green bent into a right angle, cup top-left. */
 const corner: Level = {
   name: "The Corner",
   slot: [
