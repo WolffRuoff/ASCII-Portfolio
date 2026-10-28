@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import { useGolf } from "./golf/useGolf";
+import { useTween } from "./hooks/useTween";
 import { nearCup } from "./golf/physics";
 import { LEVELS } from "./golf/levels";
 import { applyLevel, BLANK_SLOT } from "./golf/levels/apply";
@@ -20,25 +21,6 @@ const SHRINK_TIME = 500;
 const GROW_TIME = 700;
 
 type Reveal = NonNullable<ApplyOptions["reveal"]>;
-
-/**
- * Calls `onFrame` with 0 to 1 over `duration`, eased, then `onDone`. Returns a
- * function that cancels it.
- */
-function tween(
-  duration: number,
-  onFrame: (t: number) => void,
-  onDone: () => void
-): () => void {
-  const start = performance.now();
-  let frame = requestAnimationFrame(function tick(now) {
-    const t = Math.min((now - start) / duration, 1);
-    onFrame(t * t * (3 - 2 * t));
-    if (t < 1) frame = requestAnimationFrame(tick);
-    else onDone();
-  });
-  return () => cancelAnimationFrame(frame);
-}
 
 /** Excludes the scrollbar, unlike window.innerWidth. */
 function viewportWidth() {
@@ -131,35 +113,23 @@ function App() {
 
   // After a sink, shrink the level into its hole, then switch levels.
   const hasNextLevel = levelIndex + 1 < LEVELS.length;
-  useEffect(() => {
-    if (!golf.sunk || !hasNextLevel) return;
-    let cancel = () => {};
-    const timer = setTimeout(() => {
-      cancel = tween(
-        SHRINK_TIME,
-        (t) => setReveal({ around: "cup", amount: 1 - t }),
-        () => {
-          setReveal({ around: "tee", amount: 0 });
-          setLevelIndex((i) => i + 1);
-          setFlagPulled(false);
-        }
-      );
-    }, SINK_PAUSE);
-    return () => {
-      clearTimeout(timer);
-      cancel();
-    };
-  }, [golf.sunk, hasNextLevel]);
+  useTween(golf.sunk && hasNextLevel ? levelIndex : null, {
+    delay: SINK_PAUSE,
+    duration: SHRINK_TIME,
+    onFrame: (t) => setReveal({ around: "cup", amount: 1 - t }),
+    onDone: () => {
+      setReveal({ around: "tee", amount: 0 });
+      setLevelIndex((i) => i + 1);
+      setFlagPulled(false);
+    },
+  });
 
   // Grow the new level out from the ball, which sits where the last hole was.
-  useEffect(() => {
-    if (levelIndex === 0) return;
-    return tween(
-      GROW_TIME,
-      (t) => setReveal({ around: "tee", amount: t }),
-      () => setReveal(null)
-    );
-  }, [levelIndex]);
+  useTween(levelIndex > 0 ? levelIndex : null, {
+    duration: GROW_TIME,
+    onFrame: (t) => setReveal({ around: "tee", amount: t }),
+    onDone: () => setReveal(null),
+  });
 
   return (
     <div style={appStyle}>
