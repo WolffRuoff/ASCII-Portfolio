@@ -4,39 +4,42 @@ import type {
   PointerEventHandler,
   RefObject,
 } from "react";
-import { atTee, launchVelocity, remap, step } from "./physics";
+import { ballOnTee, launchVelocity, remapBall, stepBall } from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
 
-export interface Golf {
+export interface BallState {
   sunk: boolean;
-  /** -1 once the ball is sunk. */
+  /** The ball's cell; row is -1 once it's sunk. */
   row: number;
   col: number;
+  /** Starts a drag to aim a putt. */
   onPointerDown: PointerEventHandler<HTMLElement>;
 }
 
-function measure(pre: HTMLElement | null): Metrics {
+/** Character width and line height of the page, in px. */
+function measureCell(pre: HTMLElement | null): Metrics {
   const ball = pre?.querySelector(".golf-ball");
   return {
-    cw: ball ? ball.getBoundingClientRect().width : 7,
-    lh: (pre && parseFloat(getComputedStyle(pre).lineHeight)) || 13,
+    charWidth: ball ? ball.getBoundingClientRect().width : 7,
+    lineHeight: (pre && parseFloat(getComputedStyle(pre).lineHeight)) || 13,
   };
 }
 
-/** Drives the ball: drag to aim, release to putt, animate until it stops. */
-export function useGolf(
+/** Drag to aim, release to putt, then animate the ball until it stops. */
+export function useBall(
   page: Course,
   preRef: RefObject<HTMLPreElement>,
   levelIndex: number
-): Golf {
-  const [ball, setBall] = useState(() => atTee(page));
+): BallState {
+  const [ball, setBall] = useState(() => ballOnTee(page));
   const ballRef = useRef(ball);
   const pageRef = useRef(page);
   const levelRef = useRef(levelIndex);
   const metricsRef = useRef<Metrics | null>(null);
   const frameRef = useRef(0);
 
-  const update = useCallback((next: Ball) => {
+  // Updates the ref read by the animation and the state used for rendering.
+  const commit = useCallback((next: Ball) => {
     ballRef.current = next;
     setBall(next);
   }, []);
@@ -45,29 +48,36 @@ export function useGolf(
   useLayoutEffect(() => {
     if (pageRef.current === page) return;
     const newLevel = levelRef.current !== levelIndex;
-    update(
-      newLevel ? atTee(page) : remap(ballRef.current, pageRef.current, page)
+    commit(
+      newLevel
+        ? ballOnTee(page)
+        : remapBall(ballRef.current, pageRef.current, page)
     );
     pageRef.current = page;
     levelRef.current = levelIndex;
     metricsRef.current = null;
-  }, [page, levelIndex, update]);
+  }, [page, levelIndex, commit]);
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
-  const run = useCallback(() => {
+  const animate = useCallback(() => {
     let last = performance.now();
     const frame = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      if (!metricsRef.current) metricsRef.current = measure(preRef.current);
-      const next = step(ballRef.current, pageRef.current, metricsRef.current, dt);
-      update(next);
+      if (!metricsRef.current) metricsRef.current = measureCell(preRef.current);
+      const next = stepBall(
+        ballRef.current,
+        pageRef.current,
+        metricsRef.current,
+        dt
+      );
+      commit(next);
       const moving = !next.sunk && (next.vx || next.vy);
       frameRef.current = moving ? requestAnimationFrame(frame) : 0;
     };
     frameRef.current = requestAnimationFrame(frame);
-  }, [preRef, update]);
+  }, [preRef, commit]);
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
@@ -90,9 +100,9 @@ export function useGolf(
         setTimeout(() => window.removeEventListener("click", swallowClick, true));
         const v = launchVelocity(ev.clientX - cx, ev.clientY - cy);
         if (!v.vx && !v.vy) return;
-        metricsRef.current = measure(preRef.current);
-        update({ ...ballRef.current, ...v, onTee: false });
-        run();
+        metricsRef.current = measureCell(preRef.current);
+        commit({ ...ballRef.current, ...v, onTee: false });
+        animate();
       };
       const onCancel = () => {
         window.removeEventListener("pointerup", onUp);
@@ -101,7 +111,7 @@ export function useGolf(
       window.addEventListener("pointerup", onUp);
       window.addEventListener("pointercancel", onCancel);
     },
-    [preRef, run, update]
+    [preRef, animate, commit]
   );
 
   return {

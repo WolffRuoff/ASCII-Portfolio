@@ -2,7 +2,9 @@ import type { Page, PageLine } from "../../page/buildPage";
 import type { Cell, Course } from "../physics";
 import type { Anchor, Art, Level } from "./types";
 
+/** A built page with a level drawn on it. */
 export interface LevelPage extends Page, Course {
+  /** Art characters that couldn't be drawn; levels should have none. */
   dropped: number;
 }
 
@@ -10,7 +12,7 @@ export interface LevelPage extends Page, Course {
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
 /** Turns an anchor into a page row and column. */
-export function resolve(
+export function resolveAnchor(
   page: Page,
   { section, row = 0, col = 0, from = "left" }: Anchor
 ): Cell {
@@ -24,6 +26,7 @@ export function resolve(
   return { row: s.row + row, col: base + col };
 }
 
+/** Writes one character into both the lines and the grid. */
 function setChar(
   lines: PageLine[],
   grid: string[],
@@ -42,9 +45,10 @@ function setChar(
   grid[row] = grid[row].slice(0, col) + ch + grid[row].slice(col + 1);
 }
 
-export interface ApplyOptions {
+export interface ApplyLevelOptions {
   /** The level played before this one; its cup is this level's default tee. */
   prev?: Level;
+  /** Draws the flag in the cup; defaults to true. */
   withFlag?: boolean;
   /**
    * Draws only the art within this share (0 to 1) of the way out from the tee
@@ -54,21 +58,18 @@ export interface ApplyOptions {
 }
 
 /** Where a level's tee is, falling back to the previous level's cup. */
-function teeCell(page: Page, level: Level, prev?: Level): Cell {
-  if (level.tee) return resolve(page, level.tee);
+function resolveTee(page: Page, level: Level, prev?: Level): Cell {
+  if (level.tee) return resolveAnchor(page, level.tee);
   if (!prev) throw new Error(`${level.name} needs a tee`);
-  const cup = resolve(page, prev.cup);
+  const cup = resolveAnchor(page, prev.cup);
   return { row: cup.row, col: cup.col + 1 };
 }
 
-/**
- * Draws a level's art, cup and flag onto a built page. `dropped` counts
- * characters that landed outside the frame or on non-blank cells.
- */
+/** Draws a level's art, cup and flag onto a built page. */
 export function applyLevel(
   page: Page,
   level: Level,
-  { prev, withFlag = true, reveal }: ApplyOptions = {}
+  { prev, withFlag = true, reveal }: ApplyLevelOptions = {}
 ): LevelPage {
   const lines = [...page.lines];
   const grid = [...page.grid];
@@ -91,12 +92,12 @@ export function applyLevel(
   const art: Art[] = [...(level.art || [])];
   if (level.slot) art.unshift({ at: { section: "slot" }, lines: level.slot });
   for (const { at, lines: rows } of art) {
-    const origin = resolve(page, at);
+    const origin = resolveAnchor(page, at);
     rows.forEach((line, i) => draw(origin.row + i, origin.col, line));
   }
 
-  const tee = teeCell(page, level, prev);
-  const cup = resolve(page, level.cup);
+  const tee = resolveTee(page, level, prev);
+  const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
   draw(cup.row, cup.col, "(_)");
   if (withFlag) {

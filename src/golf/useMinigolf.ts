@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import type { PointerEventHandler, RefObject } from "react";
 import type { Page } from "../page/buildPage";
 import { useTween } from "../hooks/useTween";
-import { useGolf } from "./useGolf";
+import { useBall } from "./useBall";
 import { nearCup } from "./physics";
 import { LEVELS } from "./levels";
 import { applyLevel } from "./levels/apply";
-import type { ApplyOptions, LevelPage } from "./levels/apply";
+import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
 
 // Level transition timings, in ms.
 const SINK_PAUSE = 400;
 const SHRINK_TIME = 500;
 const GROW_TIME = 700;
 
-type Reveal = NonNullable<ApplyOptions["reveal"]>;
+type Reveal = NonNullable<ApplyLevelOptions["reveal"]>;
 
 export interface Minigolf {
   /** The page with the current level drawn on it. */
@@ -44,17 +44,18 @@ export function useMinigolf(
       }),
     [basePage, level, prevLevel, flagPulled, reveal]
   );
-  const golf = useGolf(page, preRef, levelIndex);
+  const ballState = useBall(page, preRef, levelIndex);
 
   // The flag is out while the ball is close to the cup or in it.
-  const ballNearCup = golf.row >= 0 && nearCup(page, golf.row, golf.col);
+  const { row, col } = ballState;
+  const ballNearCup = row >= 0 && nearCup(page, row, col);
   useEffect(() => {
-    setFlagPulled(ballNearCup || golf.sunk);
-  }, [ballNearCup, golf.sunk]);
+    setFlagPulled(ballNearCup || ballState.sunk);
+  }, [ballNearCup, ballState.sunk]);
 
   // After a sink, shrink the level into its hole, then switch levels.
   const hasNextLevel = levelIndex + 1 < LEVELS.length;
-  useTween(golf.sunk && hasNextLevel ? levelIndex : null, {
+  useTween(ballState.sunk && hasNextLevel ? levelIndex : null, {
     delay: SINK_PAUSE,
     duration: SHRINK_TIME,
     onFrame: (t) => setReveal({ around: "cup", amount: 1 - t }),
@@ -74,7 +75,7 @@ export function useMinigolf(
 
   return {
     page,
-    ball: { row: golf.row, col: golf.col },
-    onBallDown: reveal ? undefined : golf.onPointerDown,
+    ball: { row, col },
+    onBallDown: reveal ? undefined : ballState.onPointerDown,
   };
 }
