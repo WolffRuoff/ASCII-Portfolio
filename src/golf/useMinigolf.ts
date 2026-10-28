@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { PointerEventHandler, RefObject } from "react";
 import type { Page } from "../page/buildPage";
 import { useTween } from "../hooks/useTween";
@@ -46,12 +46,10 @@ export function useMinigolf(
   );
   const ballState = useBall(page, preRef, levelIndex);
 
-  // The flag is out while the ball is close to the cup or in it.
+  // Flag is out while the ball is near or in the cup (set here: page uses it).
   const { row, col } = ballState;
-  const ballNearCup = row >= 0 && nearCup(page, row, col);
-  useEffect(() => {
-    setFlagPulled(ballNearCup || ballState.sunk);
-  }, [ballNearCup, ballState.sunk]);
+  const pinOut = ballState.sunk || (row >= 0 && nearCup(page, row, col));
+  if (pinOut !== flagPulled) setFlagPulled(pinOut);
 
   // After a sink, shrink the level into its hole, then switch levels.
   const hasNextLevel = levelIndex + 1 < LEVELS.length;
@@ -62,7 +60,6 @@ export function useMinigolf(
     onDone: () => {
       setReveal({ around: "tee", amount: 0 });
       setLevelIndex((i) => i + 1);
-      setFlagPulled(false);
     },
   });
 
