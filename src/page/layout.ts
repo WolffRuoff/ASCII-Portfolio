@@ -2,6 +2,8 @@
 export interface Sizing {
   fontSize: number;
   width: number;
+  /** The window is too narrow for blocks side by side. */
+  narrow: boolean;
 }
 
 /** One laid-out line, split into padding and content pieces. */
@@ -56,7 +58,7 @@ export class Layout {
       this.sizing.width - firstLine.length - this.rightBorder.length
     );
     // Too narrow for two columns.
-    if (gapWidth <= 1 || window.innerWidth < 500 || rightPad <= 0) {
+    if (gapWidth <= 1 || this.sizing.narrow || rightPad <= 0) {
       return [
         ...this.center(spacer ? [...left, " "] : left),
         ...this.center(right),

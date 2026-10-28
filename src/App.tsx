@@ -4,9 +4,6 @@ import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import { useFitSizing } from "./hooks/useFitSizing";
 import { useMinigolf } from "./golf/useMinigolf";
-import { BLANK_SLOT } from "./golf/levels/apply";
-
-const FONT_FAMILY = "'Courier New', Courier, monospace";
 
 function App() {
   const photoWidth = 101;
@@ -22,13 +19,12 @@ function App() {
     textAlign: "left",
     margin: 0,
     fontSize: sizing.fontSize + "px",
-    fontFamily: FONT_FAMILY,
     wordBreak: "break-all",
     lineHeight: "1.1em",
   };
 
   const basePage = useMemo(
-    () => buildPage(sizing, leftBorder, rightBorder, BLANK_SLOT),
+    () => buildPage(sizing, leftBorder, rightBorder),
     [sizing, leftBorder, rightBorder]
   );
   const preRef = useRef<HTMLPreElement>(null);

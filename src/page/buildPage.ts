@@ -5,8 +5,8 @@ import { blankLines } from "./sections/blankLines";
 import { linkedArtLines } from "./sections/linkedArt";
 import { Layout, joinParts } from "./layout";
 import type { Sizing } from "./layout";
-import { GithubName } from "../ascii/GithubName";
-import { GithubCat } from "../ascii/GithubCat";
+import { githubCat } from "../ascii/githubCat";
+import { githubName } from "../ascii/githubName";
 
 /** A run of text on one line, a link when `href` is set. */
 export interface Segment {
@@ -52,20 +52,22 @@ export interface Page {
   center: number;
 }
 
+/** The empty space beside the bio, where levels draw their slot art. */
+export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
+
 /** Marks the slot's top-left cell so it can be found after layout. */
 const SLOT_MARK = "\u0001";
 
 /**
- * Builds the whole page as lines of segments ({ text, href? }). `slot` is the
- * art shown beside the bio. Also returns where each section starts so levels
- * can anchor to them.
+ * Builds the whole page as lines of segments ({ text, href? }), and where each
+ * section starts so levels can anchor to them.
  */
 export function buildPage(
   sizing: Sizing,
   leftBorder: string,
-  rightBorder: string,
-  slot: string[]
+  rightBorder: string
 ): Page {
+  const slot = BLANK_SLOT;
   const layout = new Layout(sizing, leftBorder, rightBorder);
   const width = sizing.width;
   const gap = () => blankLines(3, width, leftBorder, rightBorder);
@@ -106,8 +108,8 @@ export function buildPage(
   const buttons = add(
     linkedArtLines(
       layout,
-      { lines: GithubCat, href: "https://github.com/WolffRuoff" },
-      { lines: GithubName, href: "https://github.com/WolffRuoff" }
+      { lines: githubCat, href: "https://github.com/WolffRuoff" },
+      { lines: githubName, href: "https://github.com/WolffRuoff" }
     )
   );
   add(gap());

@@ -5,6 +5,8 @@ import type { Sizing } from "../page/layout";
 const CHAR_ASPECT = 1229 / 2048;
 const MAX_FONT_SIZE = 12;
 const MIN_FONT_SIZE = 1;
+/** Windows narrower than this, in px, stack side-by-side blocks. */
+const NARROW_WINDOW = 500;
 
 /** Excludes the scrollbar, unlike window.innerWidth. */
 function viewportWidth() {
@@ -31,11 +33,13 @@ function widthForFont(fontSize: number): number {
 
 /** Largest font size at which `requiredColumns` fit. */
 function fitSizing(requiredColumns: number): Sizing {
+  const narrow = window.innerWidth < NARROW_WINDOW;
   for (let fontSize = MAX_FONT_SIZE; fontSize > MIN_FONT_SIZE; fontSize--) {
     const width = widthForFont(fontSize);
-    if (width >= requiredColumns) return { fontSize, width };
+    if (width >= requiredColumns) return { fontSize, width, narrow };
   }
-  return { fontSize: MIN_FONT_SIZE, width: widthForFont(MIN_FONT_SIZE) };
+  const width = widthForFont(MIN_FONT_SIZE);
+  return { fontSize: MIN_FONT_SIZE, width, narrow };
 }
 
 /** Font size and page width that fit `requiredColumns`, updated on resize. */

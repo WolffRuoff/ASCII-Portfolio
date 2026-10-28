@@ -1,4 +1,5 @@
-export const GithubName: string[] = [
+/** "GitHub" in block letters. */
+export const githubName: string[] = [
   " _______ __ __   _______         __    ",
   "|     __|__|  |_|   |   |.--.--.|  |--.",
   "|    |  |  |   _|       ||  |  ||  _  |",

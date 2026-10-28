@@ -1,3 +1,4 @@
+import { nameBanner } from "../../ascii/nameBanner";
 import { joinParts } from "../layout";
 import type { Layout } from "../layout";
 
@@ -7,15 +8,6 @@ export function headerLines(width: number, layout: Layout): string[] {
   return [
     "   " + bar,
     "  |" + bar + "|  ",
-    ...joinParts(
-      layout.center(
-        [
-          `_______ __   __                  ______               ___   ___ `,
-          `|    ___|  |_|  |--.---.-.-----. |   __ \\.--.--.-----.'  _|.'  _| `,
-          `|    ___|   _|     |  _  |     | |      <|  |  |  _  |   _||   _| `,
-          `|_______|____|__|__|___._|__|__| |___|__||_____|_____|__|  |__|   `,
-        ]
-      )
-    ),
+    ...joinParts(layout.center(nameBanner)),
   ];
 }
