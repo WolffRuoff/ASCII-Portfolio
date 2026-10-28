@@ -54,7 +54,7 @@ const CASES = LEVELS.map((level, i): [string, Level, Level | undefined] => [
 ]);
 
 describe.each(CASES)("%s", (_, level, prev) => {
-  test("slot fits the rocket's space", () => {
+  test("slot fits the blank slot", () => {
     const slot = level.slot || [];
     expect(slot.length).toBeLessThanOrEqual(BLANK_SLOT.length);
     slot.forEach((line) =>

@@ -6,9 +6,8 @@ import type { Level } from "./types";
 // A level is plain data; every field but name and cup is optional.
 //
 //   name      Shown nowhere yet, but names the level in tests.
-//   slot      Art beside the bio, in place of the old rocket. At most 58
-//             columns by 25 rows, the rocket's size, so the layout doesn't
-//             move between levels.
+//   slot      Art beside the bio, at most 58 columns by 25 rows so the
+//             layout doesn't move between levels.
 //   art       [{ at, lines }] drawn anywhere on the page.
 //   cup       Where the hole is (its left edge).
 //   tee       Where the ball starts. Defaults to the middle of the previous

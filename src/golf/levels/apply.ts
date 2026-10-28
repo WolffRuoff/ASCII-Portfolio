@@ -6,8 +6,7 @@ export interface LevelPage extends Page, Course {
   dropped: number;
 }
 
-// Same size as the old rocket. Every level's slot art draws over it, so the
-// page layout stays put from level to level.
+// Every level's slot art draws over this, so the layout stays put.
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
 // Turns an anchor into a page row and column.
