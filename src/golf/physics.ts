@@ -89,15 +89,15 @@ export function launchVelocity(
   return { vx: -dx * scale, vy: -dy * scale };
 }
 
-// Bounces (vx, vy) off a wall running along (dx, dy), in px.
-function reflect(vx: number, vy: number, dx: number, dy: number) {
-  const len = Math.hypot(dx, dy);
-  const [ux, uy] = [dx / len, dy / len];
-  const along = vx * ux + vy * uy;
-  return [
-    (2 * along * ux - vx) * BOUNCE,
-    (2 * along * uy - vy) * BOUNCE,
-  ];
+function isSlash(page: Course, row: number, col: number): boolean {
+  const ch = page.grid[row]?.[col];
+  return ch === "/" || ch === "\\";
+}
+
+// Bounces (vx, vy) off a wall with unit normal (nx, ny).
+function reflect(vx: number, vy: number, nx: number, ny: number) {
+  const into = vx * nx + vy * ny;
+  return [(vx - 2 * into * nx) * BOUNCE, (vy - 2 * into * ny) * BOUNCE];
 }
 
 export function step(
@@ -111,8 +111,8 @@ export function step(
   const subSteps = Math.max(1, Math.ceil(cells / MAX_SUBSTEP));
   const h = dt / subSteps;
 
-  // Slope of the slash the ball would hit next, if any.
-  const slashAhead = (vx: number, vy: number) => {
+  // Normal (in px, facing the ball) of a slash the ball is moving into.
+  const slashAhead = () => {
     const nx = Math.floor(x + (vx * h) / cw);
     const ny = Math.floor(y + (vy * h) / lh);
     const cells = [
@@ -121,28 +121,34 @@ export function step(
       [ny, nx],
     ];
     for (const [row, col] of cells) {
-      const ch = page.grid[row]?.[col];
-      if (ch === "/" || ch === "\\") return ch;
+      if (!isSlash(page, row, col)) continue;
+      const ch = page.grid[row][col];
+      const len = Math.hypot(cw, lh);
+      let [nX, nY] = ch === "/" ? [lh / len, cw / len] : [lh / len, -cw / len];
+      const side =
+        (x - col - 0.5) * cw * nX + (y - row - 0.5) * lh * nY;
+      if (side < 0) [nX, nY] = [-nX, -nY];
+      // Only bounce when heading toward the slash's line.
+      if (vx * nX + vy * nY < 0) return [nX, nY];
     }
     return null;
   };
 
   for (let i = 0; i < subSteps; i++) {
-    const slash = slashAhead(vx, vy);
-    if (slash) {
-      [vx, vy] = reflect(vx, vy, cw, slash === "/" ? -lh : lh);
-      // Glancing along the slash: just turn back.
-      if (slashAhead(vx, vy)) [vx, vy] = [-vx, -vy];
+    const normal = slashAhead();
+    if (normal) {
+      [vx, vy] = reflect(vx, vy, normal[0], normal[1]);
       continue;
     }
 
+    // A slash the ball is leaving holds it on that axis instead of bouncing.
     const nx = x + (vx * h) / cw;
     if (passable(page, Math.floor(y), Math.floor(nx))) x = nx;
-    else vx = -vx * BOUNCE;
+    else if (!isSlash(page, Math.floor(y), Math.floor(nx))) vx = -vx * BOUNCE;
 
     const ny = y + (vy * h) / lh;
     if (passable(page, Math.floor(ny), Math.floor(x))) y = ny;
-    else vy = -vy * BOUNCE;
+    else if (!isSlash(page, Math.floor(ny), Math.floor(x))) vy = -vy * BOUNCE;
 
     if (isCup(page, Math.floor(y), Math.floor(x))) {
       return { ...ball, x, y, vx: 0, vy: 0, sunk: true };

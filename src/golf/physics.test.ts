@@ -145,20 +145,30 @@ test("glances off slashes along their slope", () => {
     sunk: false,
     onTee: false,
   });
+  // Right into \ turns down; right into / turns up.
   let ball = into(1.5);
-  while (ball.vx > 0) ball = step(ball, slashes, metrics, 1 / 60);
-  expect(ball.vy).toBeGreaterThan(0);
+  for (let i = 0; i < 8; i++) ball = step(ball, slashes, metrics, 1 / 60);
+  expect(ball.y).toBeGreaterThan(2);
+  expect(ball.x).toBeLessThan(5);
   ball = into(3.5);
-  while (ball.vx > 0) ball = step(ball, slashes, metrics, 1 / 60);
-  expect(ball.vy).toBeLessThan(0);
+  for (let i = 0; i < 8; i++) ball = step(ball, slashes, metrics, 1 / 60);
+  expect(ball.y).toBeLessThan(3);
+  expect(ball.x).toBeLessThan(5);
 });
 
-test("turns back when running straight along a slash", () => {
-  const slope = makePage(["#####", "#T  #", "# \\ #", "#  (_)", "#####"]);
-  let ball = { x: 1.5, y: 1.5, vx: 300, vy: 300, sunk: false, onTee: false };
-  for (let i = 0; i < 30 && ball.vx > 0; i++) {
-    ball = step(ball, slope, metrics, 1 / 60);
-  }
-  expect(ball.vx).toBeLessThan(0);
-  expect(ball.vy).toBeLessThan(0);
+test("drops onto a slash and rolls off down its slope", () => {
+  const slope = makePage([
+    "##########",
+    "#T       #",
+    "#   \\    #",
+    "#    \\   #",
+    "#     (_)#",
+    "##########",
+  ]);
+  let ball = { x: 4.5, y: 1.5, vx: 0, vy: 300, sunk: false, onTee: false };
+  // Real cells are about twice as tall as wide, so slashes are steep.
+  const tall = { cw: 7, lh: 13 };
+  for (let i = 0; i < 6; i++) ball = step(ball, slope, tall, 1 / 60);
+  expect(ball.x).toBeGreaterThan(5);
+  expect(ball.vy).toBeGreaterThan(0);
 });
