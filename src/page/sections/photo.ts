@@ -1,9 +1,10 @@
-import { joinParts } from "../Helpers";
-import type { Helpers } from "../Helpers";
+import { joinParts } from "../layout";
+import type { Layout } from "../layout";
 
-const Photo = ({ helpers }: { helpers: Helpers }): string[] => {
+/** The ASCII portrait, centred. */
+export function photoLines(layout: Layout): string[] {
   return joinParts(
-    helpers.AddSpaces([
+    layout.center([
       `                                                                                                    `,
       `                                          .-==+**++=-.                                               `,
       `                                      :+#@@@@@@@@@@@@@%#=.                                          `,
@@ -55,6 +56,4 @@ const Photo = ({ helpers }: { helpers: Helpers }): string[] => {
       `........:::.............................:............  ...................::--::.::-=-::+=--:..++=--`,
     ])
   );
-};
-
-export default Photo;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Sizing } from "../Helpers";
+import type { Sizing } from "../page/layout";
 
 /** Fallback character width relative to font size, used if measuring fails. */
 const CHAR_ASPECT = 1229 / 2048;

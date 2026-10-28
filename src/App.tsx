@@ -9,12 +9,12 @@ import { BLANK_SLOT } from "./golf/levels/apply";
 const FONT_FAMILY = "'Courier New', Courier, monospace";
 
 function App() {
-  const longestLine = 101;
-  const precursor = "  ||";
-  const afterCursor = "||  ";
-  // Widest block that can't wrap (the photo) plus its cursor margins.
+  const photoWidth = 101;
+  const leftBorder = "  ||";
+  const rightBorder = "||  ";
+  // Widest block that can't wrap (the photo) plus the borders.
   const requiredColumns =
-    longestLine + precursor.length + afterCursor.length + 3;
+    photoWidth + leftBorder.length + rightBorder.length + 3;
 
   const sizing = useFitSizing(requiredColumns);
 
@@ -28,8 +28,8 @@ function App() {
   };
 
   const basePage = useMemo(
-    () => buildPage(sizing, precursor, afterCursor, BLANK_SLOT),
-    [sizing, precursor, afterCursor]
+    () => buildPage(sizing, leftBorder, rightBorder, BLANK_SLOT),
+    [sizing, leftBorder, rightBorder]
   );
   const preRef = useRef<HTMLPreElement>(null);
   const { page, ball, onBallDown } = useMinigolf(basePage, preRef);
