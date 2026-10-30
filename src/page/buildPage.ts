@@ -1,19 +1,23 @@
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import Photo from "../components/Photo";
-import BlankLines from "../components/BlankLines";
-import Button from "../components/Button";
-import { Helpers, joinParts } from "../Helpers";
-import type { Sizing } from "../Helpers";
-import { GithubName } from "../ascii/GithubName";
-import { GithubCat } from "../ascii/GithubCat";
+import { headerLines } from "./sections/header";
+import { footerLines } from "./sections/footer";
+import { photoLines } from "./sections/photo";
+import { blankLines } from "./sections/blankLines";
+import { linkedArtLines } from "./sections/linkedArt";
+import { Layout, joinParts } from "./layout";
+import type { Sizing } from "./layout";
+import { githubCat } from "../ascii/githubCat";
+import { githubName } from "../ascii/githubName";
 
+/** A run of text on one line, a link when `href` is set. */
 export interface Segment {
   text: string;
   href?: string;
 }
 
+/** One line of the page. */
 export type PageLine = Segment[];
+
+/** The parts of the page levels can anchor to. */
 
 export type SectionName =
   | "header"
@@ -23,42 +27,50 @@ export type SectionName =
   | "buttons"
   | "footer";
 
+/** Where a section starts and how many lines it takes. */
 export interface Section {
   row: number;
   height: number;
 }
 
+/** Every section's position; the slot also records its left column. */
 export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
   slot: Section & { col: number };
 };
 
+/** The laid-out page, with where each part of it is. */
 export interface Page {
   lines: PageLine[];
   /** Plain text of each line, for looking up cells. */
   grid: string[];
   sections: Sections;
+  /** First column inside the left border. */
   left: number;
+  /** Last column inside the right border. */
   right: number;
+  /** The page's middle column. */
   center: number;
 }
+
+/** The empty space beside the bio, where levels draw their slot art. */
+export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
 /** Marks the slot's top-left cell so it can be found after layout. */
 const SLOT_MARK = "\u0001";
 
 /**
- * Builds the whole page as lines of segments ({ text, href? }). `slot` is the
- * art shown beside the bio. Also returns where each section starts so levels
- * can anchor to them.
+ * Builds the whole page as lines of segments ({ text, href? }), and where each
+ * section starts so levels can anchor to them.
  */
 export function buildPage(
   sizing: Sizing,
-  precursor: string,
-  afterCursor: string,
-  slot: string[]
+  leftBorder: string,
+  rightBorder: string
 ): Page {
-  const helpers = new Helpers(sizing, precursor, afterCursor);
+  const slot = BLANK_SLOT;
+  const layout = new Layout(sizing, leftBorder, rightBorder);
   const width = sizing.width;
-  const gap = () => BlankLines({ width, amount: 3, precursor, afterCursor });
+  const gap = () => blankLines(3, width, leftBorder, rightBorder);
   const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
   const rows: (string | PageLine)[] = [];
@@ -67,13 +79,13 @@ export function buildPage(
     rows.push(...sectionRows);
     return section;
   };
-  const header = add(Header({ width, helpers }));
+  const header = add(headerLines(width, layout));
   add(gap());
-  const photo = add(Photo({ helpers }));
+  const photo = add(photoLines(layout));
   add(gap());
   const bio = add(
     joinParts(
-      helpers.AddSpacesForTwo(
+      layout.sideBySide(
         [
           "Hello welcome to my page!                                       ",
           "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
@@ -94,16 +106,14 @@ export function buildPage(
   );
   add(gap());
   const buttons = add(
-    Button({
-      helpers,
-      lines1: GithubCat,
-      url1: "https://github.com/WolffRuoff",
-      lines2: GithubName,
-      url2: "https://github.com/WolffRuoff",
-    })
+    linkedArtLines(
+      layout,
+      { lines: githubCat, href: "https://github.com/WolffRuoff" },
+      { lines: githubName, href: "https://github.com/WolffRuoff" }
+    )
   );
   add(gap());
-  const footer = add(Footer({ width }));
+  const footer = add(footerLines(width));
 
   const lines = rows.map((row): PageLine =>
     typeof row === "string" ? [{ text: row }] : row
@@ -130,8 +140,8 @@ export function buildPage(
       footer,
       slot: { row: slotRow, col: slotCol, height: slot.length },
     },
-    left: precursor.length,
-    right: width - afterCursor.length - 1,
+    left: leftBorder.length,
+    right: width - rightBorder.length - 1,
     center: Math.floor(width / 2),
   };
 }

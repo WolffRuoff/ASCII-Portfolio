@@ -1,4 +1,5 @@
-export const GithubCat: string[] = [
+/** The GitHub Octocat logo. */
+export const githubCat: string[] = [
   '               .mmMMMMMMMMMMMMMmm.               ',
   '           .mMMMMMMMMMMMMMMMMMMMMMMMm.           ',
   '        .mMMMMMMMMMMMMMMMMMMMMMMMMMMMMMm.        ',

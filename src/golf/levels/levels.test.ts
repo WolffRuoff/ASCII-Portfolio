@@ -1,29 +1,25 @@
 import { LEVELS } from ".";
-import { applyLevel, BLANK_SLOT } from "./apply";
-import { buildPage } from "../../page/buildPage";
+import { applyLevel } from "./apply";
+import { BLANK_SLOT, buildPage } from "../../page/buildPage";
 import { isCup } from "../physics";
 import type { LevelPage } from "./apply";
 import type { Level } from "./types";
 
 /** Page widths to check, side by side and stacked (narrow window). */
-const LAYOUTS: [string, number, number][] = [
-  ["side by side, 112 columns", 112, 1024],
-  ["side by side, 177 columns", 177, 1600],
-  ["stacked", 112, 400],
+const LAYOUTS: [string, number, boolean][] = [
+  ["side by side, 112 columns", 112, false],
+  ["side by side, 177 columns", 177, false],
+  ["stacked", 112, true],
 ];
 
 function build(
   level: Level,
   prev: Level | undefined,
   width: number,
-  innerWidth: number
+  narrow: boolean
 ): LevelPage {
-  Object.defineProperty(window, "innerWidth", {
-    value: innerWidth,
-    configurable: true,
-  });
-  const sizing = { fontSize: 12, width };
-  const base = buildPage(sizing, "  ||", "||  ", BLANK_SLOT);
+  const sizing = { fontSize: 12, width, narrow };
+  const base = buildPage(sizing, "  ||", "||  ");
   return applyLevel(base, level, { prev });
 }
 
@@ -62,16 +58,16 @@ describe.each(CASES)("%s", (_, level, prev) => {
     );
   });
 
-  test.each(LAYOUTS)("%s: all art fits on blank cells", (_, width, inner) => {
-    expect(build(level, prev, width, inner).dropped).toBe(0);
+  test.each(LAYOUTS)("%s: all art fits on blank cells", (_, width, narrow) => {
+    expect(build(level, prev, width, narrow).dropped).toBe(0);
   });
 
-  test.each(LAYOUTS)("%s: cup is reachable from tee", (_, width, inner) => {
-    expect(explore(build(level, prev, width, inner)).reachesCup).toBe(true);
+  test.each(LAYOUTS)("%s: cup is reachable from tee", (_, width, narrow) => {
+    expect(explore(build(level, prev, width, narrow)).reachesCup).toBe(true);
   });
 
-  test.each(LAYOUTS)("%s: ball can't leave the course", (_, width, inner) => {
-    const page = build(level, prev, width, inner);
+  test.each(LAYOUTS)("%s: ball can't leave the course", (_, width, narrow) => {
+    const page = build(level, prev, width, narrow);
     const slot = page.sections.slot;
     for (const [row, col] of explore(page).cells) {
       expect(row).toBeGreaterThanOrEqual(slot.row);
@@ -84,8 +80,8 @@ describe.each(CASES)("%s", (_, level, prev) => {
 
 test("each level after the first starts where the last cup was", () => {
   LEVELS.slice(1).forEach((level, i) => {
-    const page = build(level, LEVELS[i], 112, 1024);
-    const last = build(LEVELS[i], LEVELS[i - 1], 112, 1024).cup;
+    const page = build(level, LEVELS[i], 112, false);
+    const last = build(LEVELS[i], LEVELS[i - 1], 112, false).cup;
     expect(page.tee).toEqual({ row: last.row, col: last.col + 1 });
   });
 });

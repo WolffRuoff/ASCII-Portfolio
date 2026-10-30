@@ -8,9 +8,6 @@ export interface LevelPage extends Page, Course {
   dropped: number;
 }
 
-/** Every level's slot art draws over this, so the layout stays put. */
-export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
-
 /** Turns an anchor into a page row and column. */
 export function resolveAnchor(
   page: Page,
