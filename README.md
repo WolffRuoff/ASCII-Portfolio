@@ -6,10 +6,13 @@ There's also a hidden minigolf game: drag the ball beside the bio to putt.
 
 ## Development
 
+Needs Node 20.19 or newer.
+
 ```sh
 npm install
-npm start      # dev server at http://localhost:3000/ASCII-Portfolio
+npm start      # dev server at http://localhost:5173/ASCII-Portfolio/
 npm test       # unit tests
+npm run lint   # eslint
 npm run deploy # build and publish to the gh-pages branch
 ```
 
