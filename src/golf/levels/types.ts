@@ -24,7 +24,7 @@ export interface Art {
   lines: string[];
 }
 
-/** Art that cycles through its frames, drawn only where the page is blank. */
+/** Art that cycles through frames, each replacing every cell in its box. */
 export interface Animation {
   at: Anchor;
   frames: string[][];
@@ -41,7 +41,7 @@ export interface Level {
   slot?: string[];
   /** More art, drawn anywhere on the page. */
   art?: Art[];
-  /** Moving walls, such as windmill sails. */
+  /** Moving walls, such as a windmill. */
   animation?: Animation;
   /**
    * Where the ball starts. Defaults to the middle of the previous level's cup;
@@ -50,4 +50,6 @@ export interface Level {
   tee?: Anchor;
   /** Where the hole is (its left edge). */
   cup: Anchor;
+  /** Set false to leave out the flag where there's no room for it. */
+  flag?: boolean;
 }

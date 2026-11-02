@@ -87,14 +87,6 @@ export function applyLevel(
     });
   };
 
-  // Each run of moving art is drawn whole, or hidden if anything is in the way.
-  const drawMoving = (row: number, col: number, text: string) => {
-    for (const run of text.matchAll(/\S+/g)) {
-      const start = col + run.index;
-      const cells = [...run[0]].map((ch, i) => ({ row, col: start + i, ch }));
-      if (cells.every((c) => isFree(c.row, c.col))) chars.push(...cells);
-    }
-  };
 
   const art: Art[] = [...(level.art || [])];
   if (level.slot) art.unshift({ at: { section: "slot" }, lines: level.slot });
@@ -107,7 +99,7 @@ export function applyLevel(
   const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
   draw(cup.row, cup.col, "(_)");
-  if (withFlag) {
+  if (withFlag && level.flag !== false) {
     draw(cup.row - 2, cup.col + 1, "|>");
     draw(cup.row - 1, cup.col + 1, "|");
   } else {
@@ -118,7 +110,11 @@ export function applyLevel(
     const { at, frames } = level.animation;
     const origin = resolveAnchor(page, at);
     frames[frame % frames.length].forEach((line, i) =>
-      drawMoving(origin.row + i, origin.col, line)
+      [...line].forEach((ch, j) => {
+        const col = origin.col + j;
+        if (col < page.left || col > page.right) dropped++;
+        else chars.push({ row: origin.row + i, col, ch });
+      })
     );
   }
 
