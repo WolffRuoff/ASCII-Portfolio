@@ -7,7 +7,7 @@ import type { Level } from "./types";
 
 /** Page widths to check, side by side and stacked (narrow window). */
 const LAYOUTS: [string, number, boolean][] = [
-  ["side by side, 112 columns", 112, false],
+  ["side by side, 136 columns", 136, false],
   ["side by side, 177 columns", 177, false],
   ["stacked", 112, true],
 ];
@@ -16,11 +16,12 @@ function build(
   level: Level,
   prev: Level | undefined,
   width: number,
-  narrow: boolean
+  narrow: boolean,
+  frame = 0
 ): LevelPage {
   const sizing = { fontSize: 12, width, narrow };
   const base = buildPage(sizing, "  ||", "||  ");
-  return applyLevel(base, level, { prev });
+  return applyLevel(base, level, { prev, frame });
 }
 
 /** Cells reachable from the tee, and whether the cup is one of them. */
@@ -63,7 +64,11 @@ describe.each(CASES)("%s", (_, level, prev) => {
   });
 
   test.each(LAYOUTS)("%s: cup is reachable from tee", (_, width, narrow) => {
-    expect(explore(build(level, prev, width, narrow)).reachesCup).toBe(true);
+    const frames = level.animation?.frames.length || 1;
+    const reachable = Array.from({ length: frames }, (_, frame) =>
+      explore(build(level, prev, width, narrow, frame))
+    ).some(({ reachesCup }) => reachesCup);
+    expect(reachable).toBe(true);
   });
 
   test.each(LAYOUTS)("%s: ball can't leave the course", (_, width, narrow) => {

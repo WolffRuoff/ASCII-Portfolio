@@ -13,8 +13,8 @@ export function resolveAnchor(
   page: Page,
   { section, row = 0, col = 0, from = "left" }: Anchor
 ): Cell {
-  if (section === "slot") {
-    const s = page.sections.slot;
+  if (section === "slot" || section === "name") {
+    const s = page.sections[section];
     return { row: s.row + row, col: s.col + col };
   }
   const s = page.sections[section];
@@ -47,6 +47,8 @@ export interface ApplyLevelOptions {
   prev?: Level;
   /** Draws the flag in the cup; defaults to true. */
   withFlag?: boolean;
+  /** Which frame of the level's animation to draw. */
+  frame?: number;
   /**
    * Draws only the art within this share (0 to 1) of the way out from the tee
    * or the cup, for the level transition.
@@ -66,24 +68,32 @@ function resolveTee(page: Page, level: Level, prev?: Level): Cell {
 export function applyLevel(
   page: Page,
   level: Level,
-  { prev, withFlag = true, reveal }: ApplyLevelOptions = {}
+  { prev, withFlag = true, frame = 0, reveal }: ApplyLevelOptions = {}
 ): LevelPage {
   const lines = [...page.lines];
   const grid = [...page.grid];
   const chars: (Cell & { ch: string })[] = [];
   let dropped = 0;
 
+  const isFree = (row: number, col: number) =>
+    col >= page.left && col <= page.right && grid[row]?.[col] === " ";
+
   const draw = (row: number, col: number, text: string) => {
     [...text].forEach((ch, i) => {
       const c = col + i;
       if (ch === " ") return;
-      const inFrame = c >= page.left && c <= page.right;
-      if (!inFrame || grid[row]?.[c] !== " ") {
-        dropped++;
-        return;
-      }
-      chars.push({ row, col: c, ch });
+      if (isFree(row, c)) chars.push({ row, col: c, ch });
+      else dropped++;
     });
+  };
+
+  // Each run of moving art is drawn whole, or hidden if anything is in the way.
+  const drawMoving = (row: number, col: number, text: string) => {
+    for (const run of text.matchAll(/\S+/g)) {
+      const start = col + run.index;
+      const cells = [...run[0]].map((ch, i) => ({ row, col: start + i, ch }));
+      if (cells.every((c) => isFree(c.row, c.col))) chars.push(...cells);
+    }
   };
 
   const art: Art[] = [...(level.art || [])];
@@ -103,6 +113,13 @@ export function applyLevel(
   } else {
     // Without the pole the hole gets its top edge.
     draw(cup.row - 1, cup.col + 1, "_");
+  }
+  if (level.animation) {
+    const { at, frames } = level.animation;
+    const origin = resolveAnchor(page, at);
+    frames[frame % frames.length].forEach((line, i) =>
+      drawMoving(origin.row + i, origin.col, line)
+    );
   }
 
   let shown = chars;

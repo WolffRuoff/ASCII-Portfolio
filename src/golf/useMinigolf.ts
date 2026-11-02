@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PointerEventHandler, RefObject } from "react";
 import type { Page } from "../page/buildPage";
 import { useTween } from "../hooks/useTween";
@@ -12,6 +12,8 @@ import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
 const SINK_PAUSE = 400;
 const SHRINK_TIME = 500;
 const GROW_TIME = 700;
+/** How long each frame of a level's animation shows, in ms. */
+const FRAME_TIME = 600;
 
 type Reveal = NonNullable<ApplyLevelOptions["reveal"]>;
 
@@ -33,17 +35,27 @@ export function useMinigolf(
   const [flagPulled, setFlagPulled] = useState(false);
   // Set while a level shrinks away or grows in.
   const [reveal, setReveal] = useState<Reveal | null>(null);
+  const [frame, setFrame] = useState(0);
   const level = LEVELS[levelIndex];
   const prevLevel = LEVELS[levelIndex - 1];
+  const animated = Boolean(level.animation);
   const page = useMemo(
     () =>
       applyLevel(basePage, level, {
         prev: prevLevel,
         withFlag: !flagPulled,
+        frame,
         reveal: reveal || undefined,
       }),
-    [basePage, level, prevLevel, flagPulled, reveal]
+    [basePage, level, prevLevel, flagPulled, frame, reveal]
   );
+
+  // Steps the level's animation, if it has one.
+  useEffect(() => {
+    if (!animated) return;
+    const id = setInterval(() => setFrame((f) => f + 1), FRAME_TIME);
+    return () => clearInterval(id);
+  }, [animated]);
   const ballState = useBall(page, preRef, levelIndex);
 
   // Flag is out while the ball is near or in the cup (set here: page uses it).

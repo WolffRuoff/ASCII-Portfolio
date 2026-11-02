@@ -25,6 +25,7 @@ export type SectionName =
   | "bio"
   | "slot"
   | "buttons"
+  | "name"
   | "footer";
 
 /** Where a section starts and how many lines it takes. */
@@ -33,9 +34,16 @@ export interface Section {
   height: number;
 }
 
-/** Every section's position; the slot also records its left column. */
-export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
-  slot: Section & { col: number };
+/** A section placed by layout, so it also records its left column. */
+export type PlacedSection = Section & { col: number };
+
+/** Every section's position; the slot and GitHub name record their columns. */
+export type Sections = Record<
+  Exclude<SectionName, "slot" | "name">,
+  Section
+> & {
+  slot: PlacedSection;
+  name: PlacedSection;
 };
 
 /** The laid-out page, with where each part of it is. */
@@ -55,8 +63,14 @@ export interface Page {
 /** The empty space beside the bio, where levels draw their slot art. */
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
-/** Marks the slot's top-left cell so it can be found after layout. */
+// Marks for the slot's and name's top-left cells, found again after layout.
 const SLOT_MARK = "\u0001";
+const NAME_MARK = "\u0002";
+
+/** Puts `mark` over the first character of some art. */
+function withMark(mark: string, art: string[]): string[] {
+  return [mark + art[0].slice(1), ...art.slice(1)];
+}
 
 /**
  * Builds the whole page as lines of segments ({ text, href? }), and where each
@@ -71,7 +85,6 @@ export function buildPage(
   const layout = new Layout(sizing, leftBorder, rightBorder);
   const width = sizing.width;
   const gap = () => blankLines(3, width, leftBorder, rightBorder);
-  const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
   const rows: (string | PageLine)[] = [];
   const add = (sectionRows: (string | PageLine)[]): Section => {
@@ -99,7 +112,7 @@ export function buildPage(
           "a third degree Black-Belt in karate and enjoy singing, playing  ",
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
-        marked,
+        withMark(SLOT_MARK, slot),
         true
       )
     )
@@ -109,7 +122,10 @@ export function buildPage(
     linkedArtLines(
       layout,
       { lines: githubCat, href: "https://github.com/WolffRuoff" },
-      { lines: githubName, href: "https://github.com/WolffRuoff" }
+      {
+        lines: withMark(NAME_MARK, githubName),
+        href: "https://github.com/WolffRuoff",
+      }
     )
   );
   add(gap());
@@ -120,14 +136,19 @@ export function buildPage(
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
-  // Find the slot, then put back the character the mark replaced.
-  const slotRow = grid.findIndex((line) => line.includes(SLOT_MARK));
-  const slotCol = grid[slotRow].indexOf(SLOT_MARK);
-  lines[slotRow] = lines[slotRow].map((s) => ({
-    ...s,
-    text: s.text.replace(SLOT_MARK, slot[0][0]),
-  }));
-  grid[slotRow] = grid[slotRow].replace(SLOT_MARK, slot[0][0]);
+  // Finds a mark, then puts back the character it replaced.
+  const unmark = (mark: string, art: string[]): PlacedSection => {
+    const row = grid.findIndex((line) => line.includes(mark));
+    const col = grid[row].indexOf(mark);
+    lines[row] = lines[row].map((s) => ({
+      ...s,
+      text: s.text.replace(mark, art[0][0]),
+    }));
+    grid[row] = grid[row].replace(mark, art[0][0]);
+    return { row, col, height: art.length };
+  };
+  const slotSection = unmark(SLOT_MARK, slot);
+  const nameSection = unmark(NAME_MARK, githubName);
 
   return {
     lines,
@@ -138,7 +159,8 @@ export function buildPage(
       bio,
       buttons,
       footer,
-      slot: { row: slotRow, col: slotCol, height: slot.length },
+      slot: slotSection,
+      name: nameSection,
     },
     left: leftBorder.length,
     right: width - rightBorder.length - 1,

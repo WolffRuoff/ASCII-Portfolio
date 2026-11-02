@@ -6,11 +6,14 @@ export interface Anchor {
   section: SectionName;
   /** Rows from the section's top; negative reaches the blank lines above. */
   row?: number;
-  /** Columns from the slot's left edge, or for other sections from `from`. */
+  /**
+   * Columns from the left edge of the slot or GitHub name, or for other
+   * sections from `from`.
+   */
   col?: number;
   /**
-   * For sections other than slot: the frame's left edge, page centre or frame's
-   * right edge.
+   * For sections other than slot and name: the frame's left edge, page centre
+   * or frame's right edge.
    */
   from?: "left" | "center" | "right";
 }
@@ -19,6 +22,12 @@ export interface Anchor {
 export interface Art {
   at: Anchor;
   lines: string[];
+}
+
+/** Art that cycles through its frames, drawn only where the page is blank. */
+export interface Animation {
+  at: Anchor;
+  frames: string[][];
 }
 
 /**
@@ -32,6 +41,8 @@ export interface Level {
   slot?: string[];
   /** More art, drawn anywhere on the page. */
   art?: Art[];
+  /** Moving walls, such as windmill sails. */
+  animation?: Animation;
   /**
    * Where the ball starts. Defaults to the middle of the previous level's cup;
    * the first level must set one.
