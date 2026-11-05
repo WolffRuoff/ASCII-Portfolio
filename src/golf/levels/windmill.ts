@@ -1,6 +1,6 @@
 import { HUB, WINDMILL, githubWindmill } from "../../ascii/githubName";
 import type { Blades, Word } from "../../ascii/githubName";
-import { CELL_ASPECT } from "../physics";
+import { CELL_ASPECT } from "../constants";
 import type { Level } from "./types";
 
 /** The words on the left, top, right and bottom blades before turning. */

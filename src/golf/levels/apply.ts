@@ -1,10 +1,7 @@
 import type { Page, PageLine } from "../../page/buildPage";
-import { CELL_ASPECT } from "../physics";
+import { CELL_ASPECT, FRAME_TIME } from "../constants";
 import type { Cell, Course } from "../physics";
 import type { Anchor, Art, Level } from "./types";
-
-/** How long each frame of a level's animation shows, in ms. */
-export const FRAME_TIME = 200;
 
 /** One full turn, in radians. */
 const TURN = 2 * Math.PI;

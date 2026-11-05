@@ -5,7 +5,8 @@ import { useTween } from "../hooks/useTween";
 import { useBall } from "./useBall";
 import { nearCup } from "./physics";
 import { LEVELS } from "./levels";
-import { FRAME_TIME, applyLevel } from "./levels/apply";
+import { FRAME_TIME } from "./constants";
+import { applyLevel } from "./levels/apply";
 import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
 
 // Level transition timings, in ms.

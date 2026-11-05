@@ -1,3 +1,5 @@
+import { CELL_ASPECT } from "./constants";
+
 // Speeds are in px/s; positions are in cells (x = column, y = row).
 /** Longest drag that still adds power, in px. */
 export const MAX_DRAG = 150;
@@ -15,8 +17,6 @@ export const STOP_SPEED = 15;
 const MAX_SUBSTEP = 0.3;
 /** Distance from the cup, in columns, at which the flag is pulled. */
 export const PIN_RADIUS = 8;
-/** About how many times taller a cell is than wide. */
-export const CELL_ASPECT = 2;
 /** Farthest the ball is moved to find a blank cell, in cells. */
 const SEARCH_RADIUS = 60;
 /** Fastest a moving wall knocks the ball. */
