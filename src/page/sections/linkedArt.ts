@@ -7,28 +7,19 @@ export interface LinkedArt {
   href: string;
 }
 
-/**
- * One block of linked art centred, or two side by side. When stacked,
- * `spacer` blank lines go between them.
- */
+/** One block of linked art centred, or two side by side (stacked if narrow). */
 export function linkedArtLines(
   layout: Layout,
   left: LinkedArt,
-  right?: LinkedArt,
-  spacer = 0
+  right?: LinkedArt
 ): PageLine[] {
   const parts = right
-    ? layout.sideBySide(left.lines, right.lines, spacer)
+    ? layout.sideBySide(left.lines, right.lines)
     : layout.center(left.lines);
   return parts.map((line, i) => {
     if (line.length === 3) {
-      // Centred or stacked: the left art, the spacer, then the right art.
-      const href =
-        i < left.lines.length
-          ? left.href
-          : i >= left.lines.length + spacer
-            ? right?.href
-            : undefined;
+      // Centred or stacked: the left art's lines come first.
+      const href = right && i >= left.lines.length ? right.href : left.href;
       return [{ text: line[0] }, { text: line[1], href }, { text: line[2] }];
     }
     return [

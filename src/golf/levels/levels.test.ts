@@ -101,3 +101,16 @@ test("each level after the first starts where the last cup was", () => {
     expect(page.tee).toEqual({ row: last.row, col: last.col + 1 });
   });
 });
+
+test.each(LAYOUTS)(
+  "%s: windmill pen only opens under a Git blade",
+  (_, width, narrow) => {
+    const index = LEVELS.findIndex((level) => level.name === "Windmill");
+    const reaches = [0, 1, 2, 3].map(
+      (frame) =>
+        explore(build(LEVELS[index], LEVELS[index - 1], width, narrow, frame))
+          .reachesCup
+    );
+    expect(reaches).toEqual([false, false, true, true]);
+  }
+);

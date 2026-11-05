@@ -41,9 +41,9 @@ export class Layout {
 
   /**
    * Places two blocks side by side, or stacks them when the page is narrow.
-   * `spacer` is how many blank lines go between them when stacked.
+   * `spacer` adds a blank line between them when stacked.
    */
-  sideBySide(left: string[], right: string[], spacer = 0): LineParts[] {
+  sideBySide(left: string[], right: string[], spacer = false): LineParts[] {
     const gapWidth = Math.floor(
       (this.sizing.width -
         1 -
@@ -60,7 +60,7 @@ export class Layout {
     // Too narrow for two columns.
     if (gapWidth <= 1 || this.sizing.narrow || rightPad <= 0) {
       return [
-        ...this.center([...left, ...Array(spacer).fill(" ")]),
+        ...this.center(spacer ? [...left, " "] : left),
         ...this.center(right),
       ];
     }

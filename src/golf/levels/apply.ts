@@ -87,12 +87,23 @@ export function applyLevel(
     });
   };
 
-
   const art: Art[] = [...(level.art || [])];
   if (level.slot) art.unshift({ at: { section: "slot" }, lines: level.slot });
   for (const { at, lines: rows } of art) {
     const origin = resolveAnchor(page, at);
     rows.forEach((line, i) => draw(origin.row + i, origin.col, line));
+  }
+
+  if (level.animation) {
+    const { at, frames } = level.animation;
+    const origin = resolveAnchor(page, at);
+    frames[frame % frames.length].forEach((line, i) =>
+      [...line].forEach((ch, j) => {
+        const col = origin.col + j;
+        if (col < page.left || col > page.right) dropped++;
+        else chars.push({ row: origin.row + i, col, ch });
+      })
+    );
   }
 
   const tee = resolveTee(page, level, prev);
@@ -105,17 +116,6 @@ export function applyLevel(
   } else {
     // Without the pole the hole gets its top edge.
     draw(cup.row - 1, cup.col + 1, "_");
-  }
-  if (level.animation) {
-    const { at, frames } = level.animation;
-    const origin = resolveAnchor(page, at);
-    frames[frame % frames.length].forEach((line, i) =>
-      [...line].forEach((ch, j) => {
-        const col = origin.col + j;
-        if (col < page.left || col > page.right) dropped++;
-        else chars.push({ row: origin.row + i, col, ch });
-      })
-    );
   }
 
   let shown = chars;

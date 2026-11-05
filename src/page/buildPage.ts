@@ -113,7 +113,7 @@ export function buildPage(
           "boardgames, coding, and bookbinding in my free time.            ",
         ],
         withMark(SLOT_MARK, slot),
-        1
+        true
       )
     )
   );
@@ -125,8 +125,7 @@ export function buildPage(
       {
         lines: withMark(NAME_MARK, githubName),
         href: "https://github.com/WolffRuoff",
-      },
-      2
+      }
     )
   );
   add(gap());
