@@ -1,4 +1,5 @@
 import type { Page, PageLine } from "../../page/buildPage";
+import { CELL_ASPECT } from "../physics";
 import type { Cell, Course } from "../physics";
 import type { Anchor, Art, Level } from "./types";
 
@@ -125,9 +126,8 @@ export function applyLevel(
   let shown = chars;
   if (reveal) {
     const center = reveal.around === "tee" ? tee : { ...cup, col: cup.col + 1 };
-    // Rows count twice since cells are about twice as tall as wide.
     const dist = (c: Cell) =>
-      Math.hypot(c.col - center.col, (c.row - center.row) * 2);
+      Math.hypot(c.col - center.col, (c.row - center.row) * CELL_ASPECT);
     const extent = Math.max(0, ...chars.map(dist));
     shown = chars.filter((c) => dist(c) <= reveal.amount * extent);
   }

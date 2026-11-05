@@ -15,6 +15,16 @@ export const STOP_SPEED = 15;
 const MAX_SUBSTEP = 0.3;
 /** Distance from the cup, in columns, at which the flag is pulled. */
 export const PIN_RADIUS = 8;
+/** About how many times taller a cell is than wide. */
+export const CELL_ASPECT = 2;
+/** Farthest the ball is moved to find a blank cell, in cells. */
+const SEARCH_RADIUS = 60;
+/** Fastest a moving wall knocks the ball. */
+const MAX_PUSH = 500;
+/** How far past a moving wall to look for a blank cell, in cells. */
+const PUSH_REACH = 12;
+/** Step between the cells checked past a moving wall, in cells. */
+const PUSH_STEP = 0.5;
 
 export interface Cell {
   row: number;
@@ -57,11 +67,15 @@ export interface Metrics {
   lineHeight: number;
 }
 
+/** The middle of a cell, as a ball position. */
+function middleOf({ row, col }: Cell): Pick<Ball, "x" | "y"> {
+  return { x: col + 0.5, y: row + 0.5 };
+}
+
 /** A ball at rest on the course's tee. */
 export function ballOnTee(page: Course): Ball {
   return {
-    x: page.tee.col + 0.5,
-    y: page.tee.row + 0.5,
+    ...middleOf(page.tee),
     vx: 0,
     vy: 0,
     sunk: false,
@@ -92,14 +106,11 @@ function passable(page: Course, row: number, col: number): boolean {
   return isOpen(page, row, col) || isCup(page, row, col);
 }
 
-/**
- * Whether a cell is within PIN_RADIUS of the cup. Rows count double since
- * cells are about twice as tall as wide.
- */
+/** Whether a cell is within PIN_RADIUS of the cup, with rows scaled up. */
 export function nearCup(page: Course, row: number, col: number): boolean {
   const { cup } = page;
   const dx = col - (cup.col + (cup.width - 1) / 2);
-  const dy = (row - cup.row) * 2;
+  const dy = (row - cup.row) * CELL_ASPECT;
   return Math.hypot(dx, dy) <= PIN_RADIUS;
 }
 
@@ -158,9 +169,10 @@ export function stepBall(
         ch === "/"
           ? [lineHeight / len, charWidth / len]
           : [lineHeight / len, -charWidth / len];
+      const middle = middleOf({ row, col });
       const side =
-        (x - col - 0.5) * charWidth * normX +
-        (y - row - 0.5) * lineHeight * normY;
+        (x - middle.x) * charWidth * normX +
+        (y - middle.y) * lineHeight * normY;
       if (side < 0) [normX, normY] = [-normX, -normY];
       // Only bounce when heading toward the slash's line.
       if (vx * normX + vy * normY < 0) return [normX, normY];
@@ -205,10 +217,9 @@ export function stepBall(
 export function nearestOpen(
   page: Course,
   row: number,
-  col: number,
-  maxRadius = 60
+  col: number
 ): Cell | null {
-  for (let r = 0; r <= maxRadius; r++) {
+  for (let r = 0; r <= SEARCH_RADIUS; r++) {
     for (let dr = -r; dr <= r; dr++) {
       for (let dc = -r; dc <= r; dc++) {
         if (Math.max(Math.abs(dr), Math.abs(dc)) !== r) continue;
@@ -220,9 +231,6 @@ export function nearestOpen(
   }
   return null;
 }
-
-/** Fastest a moving wall knocks the ball, in px/s. */
-const MAX_PUSH = 500;
 
 /** A speed and direction, in px/s. */
 export interface Velocity {
@@ -262,24 +270,18 @@ export function pushBall(
   const stepX = vx / metrics.charWidth;
   const stepY = vy / metrics.lineHeight;
   const len = Math.hypot(stepX, stepY) || 1;
-  for (let d = 0.5; d <= 12; d += 0.5) {
-    const x = ball.x + (stepX / len) * d;
-    const y = ball.y + (stepY / len) * d;
-    if (isOpen(page, Math.floor(y), Math.floor(x))) {
-      const at = { x: Math.floor(x) + 0.5, y: Math.floor(y) + 0.5 };
-      return { ...ball, ...at, vx, vy, onTee: false };
+  for (let d = PUSH_STEP; d <= PUSH_REACH; d += PUSH_STEP) {
+    const ahead = {
+      row: Math.floor(ball.y + (stepY / len) * d),
+      col: Math.floor(ball.x + (stepX / len) * d),
+    };
+    if (isOpen(page, ahead.row, ahead.col)) {
+      return { ...ball, ...middleOf(ahead), vx, vy, onTee: false };
     }
   }
   const cell = nearestOpen(page, row, col);
   if (!cell) return ball;
-  return {
-    ...ball,
-    x: cell.col + 0.5,
-    y: cell.row + 0.5,
-    vx,
-    vy,
-    onTee: false,
-  };
+  return { ...ball, ...middleOf(cell), vx, vy, onTee: false };
 }
 
 /** Keeps the ball's row and its offset from the page centre across a resize. */
@@ -287,11 +289,11 @@ export function remapBall(ball: Ball, from: Course, to: Course): Ball {
   if (ball.sunk) return ball;
   if (ball.onTee) return ballOnTee(to);
   const x = ball.x - from.center + to.center;
-  const y = Math.min(ball.y, to.grid.length - 0.5);
+  const y = Math.min(ball.y, middleOf({ row: to.grid.length - 1, col: 0 }).y);
   const row = Math.floor(y);
   const col = Math.floor(x);
   if (isOpen(to, row, col)) return { ...ball, x, y };
   const cell = nearestOpen(to, row, col);
   if (!cell) return ballOnTee(to);
-  return { ...ball, x: cell.col + 0.5, y: cell.row + 0.5 };
+  return { ...ball, ...middleOf(cell) };
 }
