@@ -4,8 +4,7 @@ import { photoLines } from "./sections/photo";
 import { blankLines } from "./sections/blankLines";
 import { linkedArtLines } from "./sections/linkedArt";
 import { Layout, joinParts } from "./layout";
-import type { Placement } from "./layout";
-import type { Sizing } from "./layout";
+import type { Placement, Sizing } from "./layout";
 import { githubCat } from "../ascii/githubCat";
 import { githubName } from "../ascii/githubName";
 
@@ -125,8 +124,8 @@ export function buildPage(
   add(gap());
   const footer = add(footerLines(width));
 
-  const lines = rows.map(
-    (row): PageLine => (typeof row === "string" ? [{ text: row }] : row)
+  const lines = rows.map((row): PageLine =>
+    typeof row === "string" ? [{ text: row }] : row
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
