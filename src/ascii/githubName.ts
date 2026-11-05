@@ -44,12 +44,6 @@ const DOWN = { git: GIT_DOWN, hub: HUB_DOWN };
 const ARM_WIDTH = Math.max(GIT_ACROSS[0].length, HUB_ACROSS[0].length);
 const ARM_HEIGHT = Math.max(GIT_DOWN.length, HUB_DOWN.length);
 
-/** Blade lengths from the hub, in columns (a row counts as two). */
-export const BLADE_LENGTH = {
-  git: (GIT_ACROSS[0].length + GIT_DOWN.length * 2) / 2,
-  hub: (HUB_ACROSS[0].length + HUB_DOWN.length * 2) / 2,
-};
-
 /** The blank square the blades turn around, from the art's top-left. */
 export const HUB = {
   row: ARM_HEIGHT,

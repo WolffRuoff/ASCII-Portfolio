@@ -34,10 +34,7 @@ export interface Course {
   cup: Cup;
   /** The page's middle column, for keeping the ball in place on resize. */
   center: number;
-  /**
-   * Where moving walls turn about, in cells, and how fast in radians/s:
-   * positive is clockwise on screen, negative counter-clockwise.
-   */
+  /** Where moving walls turn about, in cells, and how fast (radians/s). */
   spin?: { x: number; y: number; rate: number };
 }
 
@@ -239,7 +236,7 @@ export function spinVelocity(
   spin: NonNullable<Course["spin"]>,
   { charWidth, lineHeight }: Metrics
 ): Velocity {
-  // y points down, so a positive rate turns clockwise on screen.
+  // Clockwise on screen, where y points down.
   const rx = (ball.x - spin.x) * charWidth;
   const ry = (ball.y - spin.y) * lineHeight;
   return { vx: -ry * spin.rate, vy: rx * spin.rate };

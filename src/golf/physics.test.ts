@@ -200,23 +200,6 @@ test("a turning wall knocks the ball ahead of it, clockwise", () => {
   expect(Math.floor(pushed.y)).toBeLessThan(2);
 });
 
-test("a wall turning the other way knocks the ball the other way", () => {
-  const spun = makePage([
-    "##########",
-    "#T       #",
-    "#        #",
-    "#   #    #",
-    "#     (_)#",
-    "##########",
-  ]);
-  const spin = { x: 7.5, y: 3.5, rate: -2 };
-  const ball = { ...ballOnTee(spun), x: 4.5, y: 3.5, onTee: false };
-  const wall = spinVelocity(ball, spin, metrics);
-  const pushed = pushBall(ball, spun, wall, metrics);
-  expect(pushed.vy).toBeGreaterThan(0);
-  expect(Math.floor(pushed.y)).toBeGreaterThan(3);
-});
-
 test("a sliding wall knocks the ball the way it slides", () => {
   const ball = { ...ballOnTee(page), x: 0.5, y: 2.5, onTee: false };
   const pushed = pushBall(ball, page, { vx: 300, vy: 0 }, metrics);

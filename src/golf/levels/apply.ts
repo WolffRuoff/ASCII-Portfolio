@@ -91,15 +91,16 @@ export function applyLevel(
   const chars: (Cell & { ch: string })[] = [];
   let dropped = 0;
 
-  const isFree = (row: number, col: number) =>
-    col >= page.left && col <= page.right && grid[row]?.[col] === " ";
-
   const draw = (row: number, col: number, text: string) => {
     [...text].forEach((ch, i) => {
       const c = col + i;
       if (ch === " ") return;
-      if (isFree(row, c)) chars.push({ row, col: c, ch });
-      else dropped++;
+      const inFrame = c >= page.left && c <= page.right;
+      if (!inFrame || grid[row]?.[c] !== " ") {
+        dropped++;
+        return;
+      }
+      chars.push({ row, col: c, ch });
     });
   };
 
@@ -152,9 +153,7 @@ export function applyLevel(
   const spin = center && {
     x: center.col,
     y: center.row,
-    rate:
-      ((spinning.clockwise === false ? -1 : 1) * 2 * Math.PI * 1000) /
-      (spinning.frames * FRAME_TIME),
+    rate: (2 * Math.PI * 1000) / (spinning.frames * FRAME_TIME),
   };
   const course = { tee, cup: { ...cup, width: 3 }, spin };
   return { ...page, ...course, lines, grid, dropped };
