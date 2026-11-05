@@ -9,6 +9,7 @@ import {
   launchVelocity,
   pushBall,
   remapBall,
+  spinVelocity,
   stepBall,
 } from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
@@ -83,7 +84,8 @@ export function useBall(
     if (newLevel) next = ballOnTee(page);
     else if (sameLayout && page.spin) {
       const metrics = metricsRef.current || measureCell(preRef.current);
-      next = pushBall(ballRef.current, page, metrics);
+      const wall = spinVelocity(ballRef.current, page.spin, metrics);
+      next = pushBall(ballRef.current, page, wall, metrics);
     } else next = remapBall(ballRef.current, from, page);
     commit(next);
     pageRef.current = page;

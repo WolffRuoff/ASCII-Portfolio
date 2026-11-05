@@ -4,6 +4,7 @@ import {
   nearCup,
   pushBall,
   remapBall,
+  spinVelocity,
   stepBall,
 } from "./physics";
 import type { Ball, Course } from "./physics";
@@ -191,7 +192,8 @@ test("a turning wall knocks the ball ahead of it, clockwise", () => {
   // The wall spins about the cell right of it, so on its left it moves up.
   const spin = { x: 7.5, y: 2.5, rate: 2 };
   const ball = { ...ballOnTee(spun), x: 4.5, y: 2.5, onTee: false };
-  const pushed = pushBall(ball, { ...spun, spin }, metrics);
+  const wall = spinVelocity(ball, spin, metrics);
+  const pushed = pushBall(ball, spun, wall, metrics);
   expect(pushed.vx).toBeCloseTo(0);
   expect(pushed.vy).toBeLessThan(0);
   expect(spun.grid[Math.floor(pushed.y)][Math.floor(pushed.x)]).toBe(" ");
@@ -209,7 +211,19 @@ test("a wall turning the other way knocks the ball the other way", () => {
   ]);
   const spin = { x: 7.5, y: 3.5, rate: -2 };
   const ball = { ...ballOnTee(spun), x: 4.5, y: 3.5, onTee: false };
-  const pushed = pushBall(ball, { ...spun, spin }, metrics);
+  const wall = spinVelocity(ball, spin, metrics);
+  const pushed = pushBall(ball, spun, wall, metrics);
   expect(pushed.vy).toBeGreaterThan(0);
   expect(Math.floor(pushed.y)).toBeGreaterThan(3);
+});
+
+test("a sliding wall knocks the ball the way it slides", () => {
+  const ball = { ...ballOnTee(page), x: 0.5, y: 2.5, onTee: false };
+  const pushed = pushBall(ball, page, { vx: 300, vy: 0 }, metrics);
+  expect(pushed).toMatchObject({ x: 1.5, y: 2.5, vx: 300, vy: 0 });
+});
+
+test("leaves a ball on open ground alone", () => {
+  const ball = { ...ballOnTee(page), x: 3.5, y: 2.5, onTee: false };
+  expect(pushBall(ball, page, { vx: 300, vy: 0 }, metrics)).toBe(ball);
 });

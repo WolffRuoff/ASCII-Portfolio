@@ -224,25 +224,41 @@ export function nearestOpen(
   return null;
 }
 
-/** Fastest a turning wall knocks the ball, in px/s. */
+/** Fastest a moving wall knocks the ball, in px/s. */
 const MAX_PUSH = 500;
 
+/** A speed and direction, in px/s. */
+export interface Velocity {
+  vx: number;
+  vy: number;
+}
+
+/** How fast a turning wall moves where the ball is. */
+export function spinVelocity(
+  ball: Ball,
+  spin: NonNullable<Course["spin"]>,
+  { charWidth, lineHeight }: Metrics
+): Velocity {
+  // y points down, so a positive rate turns clockwise on screen.
+  const rx = (ball.x - spin.x) * charWidth;
+  const ry = (ball.y - spin.y) * lineHeight;
+  return { vx: -ry * spin.rate, vy: rx * spin.rate };
+}
+
 /**
- * Knocks a ball that a turning wall now covers out ahead of the wall, moving
- * the way the wall turns.
+ * Knocks a ball that a moving wall now covers out ahead of the wall, at the
+ * wall's velocity.
  */
-export function pushBall(ball: Ball, page: Course, metrics: Metrics): Ball {
-  const { spin } = page;
+export function pushBall(
+  ball: Ball,
+  page: Course,
+  wall: Velocity,
+  metrics: Metrics
+): Ball {
   const row = Math.floor(ball.y);
   const col = Math.floor(ball.x);
-  if (!spin || ball.sunk || isOpen(page, row, col) || isCup(page, row, col)) {
-    return ball;
-  }
-  // The wall's velocity at the ball; y points down, so positive is clockwise.
-  const rx = (ball.x - spin.x) * metrics.charWidth;
-  const ry = (ball.y - spin.y) * metrics.lineHeight;
-  let vx = -ry * spin.rate;
-  let vy = rx * spin.rate;
+  if (ball.sunk || isOpen(page, row, col) || isCup(page, row, col)) return ball;
+  let { vx, vy } = wall;
   const speed = Math.hypot(vx, vy);
   if (speed > MAX_PUSH)
     [vx, vy] = [(vx / speed) * MAX_PUSH, (vy / speed) * MAX_PUSH];
