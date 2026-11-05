@@ -44,9 +44,12 @@ export interface Course {
   cup: Cup;
   /** The page's middle column, for keeping the ball in place on resize. */
   center: number;
-  /** Where moving walls turn about, in cells, and how fast (radians/s). */
-  spin?: { x: number; y: number; rate: number };
+  /** How the course's moving walls move, if it has any. */
+  motion?: WallMotion;
 }
+
+/** A spin turns clockwise about (x, y), in cells, at `rate` radians/s. */
+export type WallMotion = { kind: "spin"; x: number; y: number; rate: number };
 
 export interface Ball {
   /** Position in cells; the integer part is the column. */
@@ -238,16 +241,20 @@ export interface Velocity {
   vy: number;
 }
 
-/** How fast a turning wall moves where the ball is. */
-export function spinVelocity(
+/** How fast the moving walls move where the ball is. */
+export function wallVelocity(
   ball: Ball,
-  spin: NonNullable<Course["spin"]>,
+  motion: WallMotion,
   { charWidth, lineHeight }: Metrics
 ): Velocity {
-  // Clockwise on screen, where y points down.
-  const rx = (ball.x - spin.x) * charWidth;
-  const ry = (ball.y - spin.y) * lineHeight;
-  return { vx: -ry * spin.rate, vy: rx * spin.rate };
+  switch (motion.kind) {
+    case "spin": {
+      // Clockwise on screen, where y points down.
+      const rx = (ball.x - motion.x) * charWidth;
+      const ry = (ball.y - motion.y) * lineHeight;
+      return { vx: -ry * motion.rate, vy: rx * motion.rate };
+    }
+  }
 }
 
 /**

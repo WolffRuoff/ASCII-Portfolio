@@ -24,12 +24,18 @@ export interface Art {
   lines: string[];
 }
 
+/**
+ * How an animation's walls move, so they can knock the ball. A spin turns
+ * clockwise about `center`, once every `frames` frames.
+ */
+export type Motion = { kind: "spin"; center: Anchor; frames: number };
+
 /** Art that cycles through frames, each replacing every cell in its box. */
 export interface Animation {
   at: Anchor;
   frames: string[][];
-  /** For art that turns clockwise: its centre and frames per full turn. */
-  spin?: { center: Anchor; frames: number };
+  /** How the walls move, for art that pushes the ball. */
+  motion?: Motion;
 }
 
 /**

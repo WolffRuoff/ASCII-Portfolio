@@ -121,7 +121,8 @@ const windmill: Level = {
   animation: {
     at: { section: "name" },
     frames: FRAMES,
-    spin: {
+    motion: {
+      kind: "spin",
       center: {
         section: "name",
         row: HUB.row + HUB.height / 2,

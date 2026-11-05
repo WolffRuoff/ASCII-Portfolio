@@ -4,7 +4,7 @@ import {
   nearCup,
   pushBall,
   remapBall,
-  spinVelocity,
+  wallVelocity,
   stepBall,
 } from "./physics";
 import type { Ball, Course } from "./physics";
@@ -190,9 +190,9 @@ test("a turning wall knocks the ball ahead of it, clockwise", () => {
     "##########",
   ]);
   // The wall spins about the cell right of it, so on its left it moves up.
-  const spin = { x: 7.5, y: 2.5, rate: 2 };
+  const spin = { kind: "spin", x: 7.5, y: 2.5, rate: 2 } as const;
   const ball = { ...ballOnTee(spun), x: 4.5, y: 2.5, onTee: false };
-  const wall = spinVelocity(ball, spin, metrics);
+  const wall = wallVelocity(ball, spin, metrics);
   const pushed = pushBall(ball, spun, wall, metrics);
   expect(pushed.vx).toBeCloseTo(0);
   expect(pushed.vy).toBeLessThan(0);

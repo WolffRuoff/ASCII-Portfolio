@@ -9,8 +9,8 @@ import {
   launchVelocity,
   pushBall,
   remapBall,
-  spinVelocity,
   stepBall,
+  wallVelocity,
 } from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
 
@@ -73,7 +73,7 @@ export function useBall(
   }, [preRef, commit]);
 
   // A new level starts on its tee; anything else keeps the ball, unless a
-  // turning wall knocks it.
+  // moving wall knocks it.
   useLayoutEffect(() => {
     const from = pageRef.current;
     if (from === page) return;
@@ -82,9 +82,9 @@ export function useBall(
       from.center === page.center && from.grid.length === page.grid.length;
     let next: Ball;
     if (newLevel) next = ballOnTee(page);
-    else if (sameLayout && page.spin) {
+    else if (sameLayout && page.motion) {
       const metrics = metricsRef.current || measureCell(preRef.current);
-      const wall = spinVelocity(ballRef.current, page.spin, metrics);
+      const wall = wallVelocity(ballRef.current, page.motion, metrics);
       next = pushBall(ballRef.current, page, wall, metrics);
     } else next = remapBall(ballRef.current, from, page);
     commit(next);

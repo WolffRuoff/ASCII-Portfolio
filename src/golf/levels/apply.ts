@@ -1,7 +1,7 @@
 import type { Page, PageLine } from "../../page/buildPage";
 import { CELL_ASPECT, FRAME_TIME } from "../constants";
-import type { Cell, Course } from "../physics";
-import type { Anchor, Art, Level } from "./types";
+import type { Cell, Course, WallMotion } from "../physics";
+import type { Anchor, Art, Level, Motion } from "./types";
 
 /** One full turn, in radians. */
 const TURN = 2 * Math.PI;
@@ -28,6 +28,23 @@ export function resolveAnchor(
   const base =
     from === "center" ? page.center : from === "right" ? page.right : page.left;
   return { row: s.row + row, col: base + col };
+}
+
+/** Turns a level's wall motion into page cells and real time. */
+function resolveMotion(page: Page, motion: Motion): WallMotion {
+  switch (motion.kind) {
+    case "spin": {
+      const center = resolveAnchor(page, motion.center);
+      // How long one turn takes, in seconds.
+      const turnTime = (motion.frames * FRAME_TIME) / 1000;
+      return {
+        kind: "spin",
+        x: center.col,
+        y: center.row,
+        rate: TURN / turnTime,
+      };
+    }
+  }
 }
 
 /** Writes one character into both the lines and the grid. */
@@ -136,14 +153,11 @@ export function applyLevel(
   }
   for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
-  const spinning = level.animation?.spin;
-  let spin: Course["spin"];
-  if (spinning) {
-    const center = resolveAnchor(page, spinning.center);
-    // How long one turn takes, in seconds.
-    const turnTime = (spinning.frames * FRAME_TIME) / 1000;
-    spin = { x: center.col, y: center.row, rate: TURN / turnTime };
-  }
-  const course = { tee, cup: { ...cup, width: CUP.length }, spin };
+  const motion = level.animation?.motion;
+  const course = {
+    tee,
+    cup: { ...cup, width: CUP.length },
+    motion: motion && resolveMotion(page, motion),
+  };
   return { ...page, ...course, lines, grid, dropped };
 }
