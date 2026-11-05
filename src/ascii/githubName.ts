@@ -6,10 +6,10 @@ const GIT_ACROSS = [
   "|_______|__|____|",
 ];
 const HUB_ACROSS = [
-  " _______         __    ",
-  "|   |   |.--.--.|  |--.",
-  "|       ||  |  ||  _  |",
-  "|___|___||_____||_____|",
+  " _______       __    ",
+  "|   |   |--.--|  |--.",
+  "|       |  |  |  _  |",
+  "|___|___|_____|_____|",
 ];
 const GIT_DOWN = [
   " _____ ",
@@ -27,11 +27,9 @@ const HUB_DOWN = [
   "|_   _|",
   "|     |",
   "|_____|",
-  " ____. ",
   "|    : ",
   "|  _ : ",
-  "|____. ",
-  " _____ ",
+  "|_____|",
   "|    _|",
   "|  | : ",
   "|____. ",
@@ -85,5 +83,15 @@ export function githubWindmill([left, top, right, bottom]: Blades): string[] {
   return grid.map((row) => row.join(""));
 }
 
-/** "Git  Hub", with blank space above and below for the windmill level. */
-export const githubName: string[] = githubWindmill(["git", null, "hub", null]);
+/** "GitHub" in one piece, centred where the windmill turns on level 5. */
+export const githubName: string[] = (() => {
+  const art = githubWindmill([null, null, null, null]);
+  // "Git" ends on the wall that starts "Hub".
+  const word = GIT_ACROSS.map((line, i) => line.slice(0, -1) + HUB_ACROSS[i]);
+  const col = Math.floor((WINDMILL.width - word[0].length) / 2);
+  word.forEach((line, i) => {
+    const row = art[HUB.row + i];
+    art[HUB.row + i] = row.slice(0, col) + line + row.slice(col + line.length);
+  });
+  return art;
+})();
