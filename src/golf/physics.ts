@@ -1,26 +1,20 @@
-import { CELL_ASPECT } from "./constants";
+import {
+  BOUNCE,
+  CELL_ASPECT,
+  FRICTION,
+  MAX_DRAG,
+  MAX_PUSH,
+  MIN_DRAG,
+  PIN_RADIUS,
+  POWER,
+  STOP_SPEED,
+} from "./constants";
 
 // Speeds are in px/s; positions are in cells (x = column, y = row).
-/** Longest drag that still adds power, in px. */
-export const MAX_DRAG = 150;
-/** Launch speed per px of drag. */
-export const POWER = 6;
-/** Shorter drags are ignored, in px. */
-export const MIN_DRAG = 4;
-/** Speed lost per second, as an exponential decay rate. */
-export const FRICTION = 1.5;
-/** Share of speed kept after hitting a wall. */
-export const BOUNCE = 0.8;
-/** The ball stops below this speed. */
-export const STOP_SPEED = 15;
 /** Most cells the ball moves in one collision check. */
 const MAX_SUBSTEP = 0.3;
-/** Distance from the cup, in columns, at which the flag is pulled. */
-export const PIN_RADIUS = 8;
 /** Farthest the ball is moved to find a blank cell, in cells. */
 const SEARCH_RADIUS = 60;
-/** Fastest a moving wall knocks the ball. */
-const MAX_PUSH = 500;
 /** How far past a moving wall to look for a blank cell, in cells. */
 const PUSH_REACH = 12;
 /** Step between the cells checked past a moving wall, in cells. */
