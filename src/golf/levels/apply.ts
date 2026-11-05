@@ -1,6 +1,10 @@
 import type { Page, PageLine } from "../../page/buildPage";
+import { CELL_ASPECT } from "../constants";
 import type { Cell, Course } from "../physics";
 import type { Anchor, Art, Level } from "./types";
+
+/** How the cup is drawn. */
+const CUP = "(_)";
 
 /** A built page with a level drawn on it. */
 export interface LevelPage extends Page, Course {
@@ -96,7 +100,7 @@ export function applyLevel(
   const tee = resolveTee(page, level, prev);
   const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
-  draw(cup.row, cup.col, "(_)");
+  draw(cup.row, cup.col, CUP);
   if (withFlag) {
     draw(cup.row - 2, cup.col + 1, "|>");
     draw(cup.row - 1, cup.col + 1, "|");
@@ -108,13 +112,13 @@ export function applyLevel(
   let shown = chars;
   if (reveal) {
     const center = reveal.around === "tee" ? tee : { ...cup, col: cup.col + 1 };
-    // Rows count twice since cells are about twice as tall as wide.
     const dist = (c: Cell) =>
-      Math.hypot(c.col - center.col, (c.row - center.row) * 2);
+      Math.hypot(c.col - center.col, (c.row - center.row) * CELL_ASPECT);
     const extent = Math.max(0, ...chars.map(dist));
     shown = chars.filter((c) => dist(c) <= reveal.amount * extent);
   }
   for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
-  return { ...page, lines, grid, tee, cup: { ...cup, width: 3 }, dropped };
+  const course = { tee, cup: { ...cup, width: CUP.length } };
+  return { ...page, ...course, lines, grid, dropped };
 }

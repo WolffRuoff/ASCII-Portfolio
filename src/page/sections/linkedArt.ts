@@ -14,7 +14,7 @@ export function linkedArtLines(
   right?: LinkedArt
 ): PageLine[] {
   const parts = right
-    ? layout.sideBySide(left.lines, right.lines)
+    ? layout.sideBySide(left.lines, right.lines).lines
     : layout.center(left.lines);
   return parts.map((line, i) => {
     if (line.length === 3) {

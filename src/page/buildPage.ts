@@ -55,9 +55,6 @@ export interface Page {
 /** The empty space beside the bio, where levels draw their slot art. */
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
-/** Marks the slot's top-left cell so it can be found after layout. */
-const SLOT_MARK = "\u0001";
-
 /**
  * Builds the whole page as lines of segments ({ text, href? }), and where each
  * section starts so levels can anchor to them.
@@ -71,7 +68,6 @@ export function buildPage(
   const layout = new Layout(sizing, leftBorder, rightBorder);
   const width = sizing.width;
   const gap = () => blankLines(3, width, leftBorder, rightBorder);
-  const marked = [SLOT_MARK + slot[0].slice(1), ...slot.slice(1)];
 
   const rows: (string | PageLine)[] = [];
   const add = (sectionRows: (string | PageLine)[]): Section => {
@@ -83,27 +79,24 @@ export function buildPage(
   add(gap());
   const photo = add(photoLines(layout));
   add(gap());
-  const bio = add(
-    joinParts(
-      layout.sideBySide(
-        [
-          "Hello welcome to my page!                                       ",
-          "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
-          "entire website is responsive and dynamically made with ASCII    ",
-          "characters. Try resizing and copying the page.                  ",
-          "I hope you enjoy!                                               ",
-          "                                                                ",
-          "To tell you a bit more about me, I have a Master of Science     ",
-          "from Columbia University and a Bachelor of Science in Computer  ",
-          "Science and Business Administration from Muhlenberg College. I'm",
-          "a third degree Black-Belt in karate and enjoy singing, playing  ",
-          "boardgames, coding, and bookbinding in my free time.            ",
-        ],
-        marked,
-        true
-      )
-    )
+  const bioBlock = layout.sideBySide(
+    [
+      "Hello welcome to my page!                                       ",
+      "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
+      "entire website is responsive and dynamically made with ASCII    ",
+      "characters. Try resizing and copying the page.                  ",
+      "I hope you enjoy!                                               ",
+      "                                                                ",
+      "To tell you a bit more about me, I have a Master of Science     ",
+      "from Columbia University and a Bachelor of Science in Computer  ",
+      "Science and Business Administration from Muhlenberg College. I'm",
+      "a third degree Black-Belt in karate and enjoy singing, playing  ",
+      "boardgames, coding, and bookbinding in my free time.            ",
+    ],
+    slot,
+    true
   );
+  const bio = add(joinParts(bioBlock.lines));
   add(gap());
   const buttons = add(
     linkedArtLines(
@@ -120,14 +113,12 @@ export function buildPage(
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
-  // Find the slot, then put back the character the mark replaced.
-  const slotRow = grid.findIndex((line) => line.includes(SLOT_MARK));
-  const slotCol = grid[slotRow].indexOf(SLOT_MARK);
-  lines[slotRow] = lines[slotRow].map((s) => ({
-    ...s,
-    text: s.text.replace(SLOT_MARK, slot[0][0]),
-  }));
-  grid[slotRow] = grid[slotRow].replace(SLOT_MARK, slot[0][0]);
+  // The slot's place within the bio, as page coordinates.
+  const slotSection = {
+    row: bio.row + bioBlock.right.row,
+    col: bioBlock.right.col,
+    height: slot.length,
+  };
 
   return {
     lines,
@@ -138,7 +129,7 @@ export function buildPage(
       bio,
       buttons,
       footer,
-      slot: { row: slotRow, col: slotCol, height: slot.length },
+      slot: slotSection,
     },
     left: leftBorder.length,
     right: width - rightBorder.length - 1,
