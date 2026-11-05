@@ -6,6 +6,12 @@ import type { Anchor, Art, Level } from "./types";
 /** How long each frame of a level's animation shows, in ms. */
 export const FRAME_TIME = 200;
 
+/** One full turn, in radians. */
+const TURN = 2 * Math.PI;
+
+/** How the cup is drawn. */
+const CUP = "(_)";
+
 /** A built page with a level drawn on it. */
 export interface LevelPage extends Page, Course {
   /** Art characters that couldn't be drawn; levels should have none. */
@@ -114,7 +120,7 @@ export function applyLevel(
   const tee = resolveTee(page, level, prev);
   const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
-  draw(cup.row, cup.col, "(_)");
+  draw(cup.row, cup.col, CUP);
   if (withFlag) {
     draw(cup.row - 2, cup.col + 1, "|>");
     draw(cup.row - 1, cup.col + 1, "|");
@@ -134,12 +140,13 @@ export function applyLevel(
   for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
   const spinning = level.animation?.spin;
-  const center = spinning && resolveAnchor(page, spinning.center);
-  const spin = center && {
-    x: center.col,
-    y: center.row,
-    rate: (2 * Math.PI * 1000) / (spinning.frames * FRAME_TIME),
-  };
-  const course = { tee, cup: { ...cup, width: 3 }, spin };
+  let spin: Course["spin"];
+  if (spinning) {
+    const center = resolveAnchor(page, spinning.center);
+    // How long one turn takes, in seconds.
+    const turnTime = (spinning.frames * FRAME_TIME) / 1000;
+    spin = { x: center.col, y: center.row, rate: TURN / turnTime };
+  }
+  const course = { tee, cup: { ...cup, width: CUP.length }, spin };
   return { ...page, ...course, lines, grid, dropped };
 }
