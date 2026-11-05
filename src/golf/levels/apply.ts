@@ -45,6 +45,19 @@ function setChar(
   grid[row] = grid[row].slice(0, col) + ch + grid[row].slice(col + 1);
 }
 
+/** Drops links from segments that overlap columns `from` to `to` of a row. */
+function unlink(lines: PageLine[], row: number, from: number, to: number) {
+  if (!lines[row]) return;
+  let offset = 0;
+  lines[row] = lines[row].map(({ href, ...segment }) => {
+    const start = offset;
+    offset += segment.text.length;
+    return href && (start > to || offset <= from)
+      ? { ...segment, href }
+      : segment;
+  });
+}
+
 export interface ApplyLevelOptions {
   /** The level played before this one; its cup is this level's default tee. */
   prev?: Level;
@@ -100,13 +113,15 @@ export function applyLevel(
   if (level.animation) {
     const { at, frames } = level.animation;
     const origin = resolveAnchor(page, at);
-    frames[frame % frames.length].forEach((line, i) =>
+    frames[frame % frames.length].forEach((line, i) => {
+      // Moving art shouldn't be a link.
+      unlink(lines, origin.row + i, origin.col, origin.col + line.length - 1);
       [...line].forEach((ch, j) => {
         const col = origin.col + j;
         if (col < page.left || col > page.right) dropped++;
         else chars.push({ row: origin.row + i, col, ch });
-      })
-    );
+      });
+    });
   }
 
   const tee = resolveTee(page, level, prev);
