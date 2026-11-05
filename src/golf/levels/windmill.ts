@@ -16,8 +16,8 @@ function turned(quarters: number): Blades {
   return WORDS.map((_, i) => WORDS[(i - quarters + 4) % 4]) as Blades;
 }
 
-/** Least a slanted top or bottom blade moves, so putts can pass the hub. */
-const CLEAR = 3;
+/** Least the slanted top and bottom blades move, so putts can pass the hub. */
+const CLEAR = { top: 4, bottom: 3 };
 
 /** Each letter's first and last column in "Git" and "Hub" across. */
 const LETTERS: Record<Word, [number, number][]> = {
@@ -54,7 +54,8 @@ function tilted(quarters: number, degrees: number): string[] {
   art.forEach((line, row) => {
     if (row >= HUB.row && row < HUB.row + HUB.height) return;
     const lean = (row * 2 + 1 - cy) * slope;
-    const shift = Math.sign(lean) * Math.max(CLEAR, Math.round(Math.abs(lean)));
+    const least = row < HUB.row ? CLEAR.top : CLEAR.bottom;
+    const shift = Math.sign(lean) * Math.max(least, Math.round(Math.abs(lean)));
     [...line].forEach((ch, col) => {
       if (ch !== " ") put(row, col - shift, ch);
     });
