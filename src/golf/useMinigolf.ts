@@ -5,15 +5,13 @@ import { useTween } from "../hooks/useTween";
 import { useBall } from "./useBall";
 import { nearCup } from "./physics";
 import { LEVELS } from "./levels";
-import { applyLevel } from "./levels/apply";
+import { FRAME_TIME, applyLevel } from "./levels/apply";
 import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
 
 // Level transition timings, in ms.
 const SINK_PAUSE = 400;
 const SHRINK_TIME = 500;
 const GROW_TIME = 700;
-/** How long each frame of a level's animation shows, in ms. */
-const FRAME_TIME = 200;
 
 type Reveal = NonNullable<ApplyLevelOptions["reveal"]>;
 

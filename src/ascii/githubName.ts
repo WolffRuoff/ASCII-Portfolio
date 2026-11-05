@@ -6,10 +6,10 @@ const GIT_ACROSS = [
   "|_______|__|____|",
 ];
 const HUB_ACROSS = [
-  " _______       __    ",
-  "|   |   |--.--|  |--.",
-  "|       |  |  |  _  |",
-  "|___|___|_____|_____|",
+  " _____       __    ",
+  "|  |  |--.--|  |--.",
+  "|     |  |  |  _  |",
+  "|__|__|_____|_____|",
 ];
 const GIT_DOWN = [
   " _____ ",
@@ -65,15 +65,21 @@ export const WINDMILL = {
   height: ARM_HEIGHT * 2 + HUB.height,
 };
 
-/** The GitHub windmill with the given words on its blades. */
-export function githubWindmill([left, top, right, bottom]: Blades): string[] {
+/**
+ * The GitHub windmill with the given words on its blades. Blank cells inside
+ * each blade's box become `fill`.
+ */
+export function githubWindmill(
+  [left, top, right, bottom]: Blades,
+  fill = " "
+): string[] {
   const grid = Array.from({ length: WINDMILL.height }, () =>
     Array(WINDMILL.width).fill(" ")
   );
   const put = (row: number, col: number, lines: string[]) =>
     lines.forEach((line, i) =>
       [...line].forEach((ch, j) => {
-        if (ch !== " ") grid[row + i][col + j] = ch;
+        grid[row + i][col + j] = ch === " " ? fill : ch;
       })
     );
   if (left) put(HUB.row, HUB.col - ACROSS[left][0].length, ACROSS[left]);

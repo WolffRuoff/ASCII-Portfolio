@@ -13,6 +13,9 @@ const WORDS: Word[] = ["git", "git", "hub", "hub"];
 /** Frames drawn between each quarter turn. */
 const STEPS = 3;
 
+/** Fills the inside of blades: it looks blank but the ball can't pass. */
+const SOLID = "\u00a0";
+
 /** How wide a blade is, in columns (a row counts as two). */
 const BLADE_WIDTH = (HUB.width + HUB.height * 2) / 2;
 
@@ -62,13 +65,24 @@ function spinning(degrees: number): string[] {
         if (grid[row]?.[col] !== undefined) grid[row][col] = ch;
       }
     });
+    // Fill cells whose centres fall inside the blade.
+    grid.forEach((cells, row) =>
+      cells.forEach((ch, col) => {
+        const dx = col + 0.5 - cx;
+        const dy = row * 2 + 1 - cy;
+        const along = dx * ux + dy * uy;
+        const across = Math.abs(dy * ux - dx * uy);
+        const inside = along > start && along < end && across < half;
+        if (inside && ch === " ") cells[col] = SOLID;
+      })
+    );
   });
   return grid.map((row) => row.join(""));
 }
 
 /** One full turn: each quarter's words, then outlines on the way round. */
 const FRAMES = [0, 1, 2, 3].flatMap((quarter) => [
-  githubWindmill(turned(quarter)),
+  githubWindmill(turned(quarter), SOLID),
   ...Array.from({ length: STEPS - 1 }, (_, step) =>
     spinning(90 * quarter + (90 * (step + 1)) / STEPS)
   ),
@@ -95,7 +109,18 @@ const windmill: Level = {
   ],
   cup: { section: "name", row: BELOW + 2, col: HUB.col + 1 },
   flag: false,
-  animation: { at: { section: "name" }, frames: FRAMES },
+  animation: {
+    at: { section: "name" },
+    frames: FRAMES,
+    spin: {
+      center: {
+        section: "name",
+        row: HUB.row + HUB.height / 2,
+        col: HUB.col + HUB.width / 2,
+      },
+      frames: FRAMES.length,
+    },
+  },
 };
 
 export default windmill;

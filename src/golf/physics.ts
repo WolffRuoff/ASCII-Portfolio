@@ -34,6 +34,8 @@ export interface Course {
   cup: Cup;
   /** The page's middle column, for keeping the ball in place on resize. */
   center: number;
+  /** Where moving walls turn about, in cells, and how fast (radians/s). */
+  spin?: { x: number; y: number; rate: number };
 }
 
 export interface Ball {
@@ -217,6 +219,50 @@ export function nearestOpen(
     }
   }
   return null;
+}
+
+/** Fastest a turning wall knocks the ball, in px/s. */
+const MAX_PUSH = 500;
+
+/**
+ * Knocks a ball that a turning wall now covers out ahead of the wall, moving
+ * the way the wall turns.
+ */
+export function pushBall(ball: Ball, page: Course, metrics: Metrics): Ball {
+  const { spin } = page;
+  const row = Math.floor(ball.y);
+  const col = Math.floor(ball.x);
+  if (!spin || ball.sunk || isOpen(page, row, col) || isCup(page, row, col)) {
+    return ball;
+  }
+  // Clockwise on screen, where y points down.
+  const rx = (ball.x - spin.x) * metrics.charWidth;
+  const ry = (ball.y - spin.y) * metrics.lineHeight;
+  let vx = -ry * spin.rate;
+  let vy = rx * spin.rate;
+  const speed = Math.hypot(vx, vy);
+  if (speed > MAX_PUSH) [vx, vy] = [(vx / speed) * MAX_PUSH, (vy / speed) * MAX_PUSH];
+  const stepX = vx / metrics.charWidth;
+  const stepY = vy / metrics.lineHeight;
+  const len = Math.hypot(stepX, stepY) || 1;
+  for (let d = 0.5; d <= 12; d += 0.5) {
+    const x = ball.x + (stepX / len) * d;
+    const y = ball.y + (stepY / len) * d;
+    if (isOpen(page, Math.floor(y), Math.floor(x))) {
+      const at = { x: Math.floor(x) + 0.5, y: Math.floor(y) + 0.5 };
+      return { ...ball, ...at, vx, vy, onTee: false };
+    }
+  }
+  const cell = nearestOpen(page, row, col);
+  if (!cell) return ball;
+  return {
+    ...ball,
+    x: cell.col + 0.5,
+    y: cell.row + 0.5,
+    vx,
+    vy,
+    onTee: false,
+  };
 }
 
 /** Keeps the ball's row and its offset from the page centre across a resize. */

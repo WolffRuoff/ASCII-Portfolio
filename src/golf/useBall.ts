@@ -4,7 +4,13 @@ import type {
   PointerEventHandler,
   RefObject,
 } from "react";
-import { ballOnTee, launchVelocity, remapBall, stepBall } from "./physics";
+import {
+  ballOnTee,
+  launchVelocity,
+  pushBall,
+  remapBall,
+  stepBall,
+} from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
 
 export interface BallState {
@@ -44,20 +50,6 @@ export function useBall(
     setBall(next);
   }, []);
 
-  // A new level starts on its tee; anything else (resize, flag) keeps the ball.
-  useLayoutEffect(() => {
-    if (pageRef.current === page) return;
-    const newLevel = levelRef.current !== levelIndex;
-    commit(
-      newLevel
-        ? ballOnTee(page)
-        : remapBall(ballRef.current, pageRef.current, page)
-    );
-    pageRef.current = page;
-    levelRef.current = levelIndex;
-    metricsRef.current = null;
-  }, [page, levelIndex, commit]);
-
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
   const animate = useCallback(() => {
@@ -78,6 +70,28 @@ export function useBall(
     };
     frameRef.current = requestAnimationFrame(frame);
   }, [preRef, commit]);
+
+  // A new level starts on its tee; anything else keeps the ball, unless a
+  // turning wall knocks it.
+  useLayoutEffect(() => {
+    const from = pageRef.current;
+    if (from === page) return;
+    const newLevel = levelRef.current !== levelIndex;
+    const sameLayout =
+      from.center === page.center && from.grid.length === page.grid.length;
+    let next: Ball;
+    if (newLevel) next = ballOnTee(page);
+    else if (sameLayout && page.spin) {
+      const metrics = metricsRef.current || measureCell(preRef.current);
+      next = pushBall(ballRef.current, page, metrics);
+    } else next = remapBall(ballRef.current, from, page);
+    commit(next);
+    pageRef.current = page;
+    levelRef.current = levelIndex;
+    if (!sameLayout) metricsRef.current = null;
+    const moving = !next.sunk && (next.vx || next.vy);
+    if (moving && !frameRef.current) animate();
+  }, [page, levelIndex, preRef, commit, animate]);
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {

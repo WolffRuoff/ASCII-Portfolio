@@ -2,6 +2,7 @@ import {
   ballOnTee,
   launchVelocity,
   nearCup,
+  pushBall,
   remapBall,
   stepBall,
 } from "./physics";
@@ -177,4 +178,22 @@ test("drops onto a slash and rolls off down its slope", () => {
   for (let i = 0; i < 6; i++) ball = stepBall(ball, slope, tall, 1 / 60);
   expect(ball.x).toBeGreaterThan(5);
   expect(ball.vy).toBeGreaterThan(0);
+});
+
+test("a turning wall knocks the ball ahead of it, clockwise", () => {
+  const spun = makePage([
+    "##########",
+    "#T       #",
+    "#   #    #",
+    "#     (_)#",
+    "##########",
+  ]);
+  // The wall spins about the cell right of it, so on its left it moves up.
+  const spin = { x: 7.5, y: 2.5, rate: 2 };
+  const ball = { ...ballOnTee(spun), x: 4.5, y: 2.5, onTee: false };
+  const pushed = pushBall(ball, { ...spun, spin }, metrics);
+  expect(pushed.vx).toBeCloseTo(0);
+  expect(pushed.vy).toBeLessThan(0);
+  expect(spun.grid[Math.floor(pushed.y)][Math.floor(pushed.x)]).toBe(" ");
+  expect(Math.floor(pushed.y)).toBeLessThan(2);
 });

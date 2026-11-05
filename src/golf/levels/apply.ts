@@ -2,6 +2,9 @@ import type { Page, PageLine } from "../../page/buildPage";
 import type { Cell, Course } from "../physics";
 import type { Anchor, Art, Level } from "./types";
 
+/** How long each frame of a level's animation shows, in ms. */
+export const FRAME_TIME = 200;
+
 /** A built page with a level drawn on it. */
 export interface LevelPage extends Page, Course {
   /** Art characters that couldn't be drawn; levels should have none. */
@@ -129,5 +132,13 @@ export function applyLevel(
   }
   for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
-  return { ...page, lines, grid, tee, cup: { ...cup, width: 3 }, dropped };
+  const spinning = level.animation?.spin;
+  const center = spinning && resolveAnchor(page, spinning.center);
+  const spin = center && {
+    x: center.col,
+    y: center.row,
+    rate: (2 * Math.PI * 1000) / (spinning.frames * FRAME_TIME),
+  };
+  const course = { tee, cup: { ...cup, width: 3 }, spin };
+  return { ...page, ...course, lines, grid, dropped };
 }
