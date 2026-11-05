@@ -1,13 +1,13 @@
 import { HUB } from "../../ascii/githubName";
 import type { Level } from "./types";
 
-/** Level 4: the green again, but out the top gap to a cup by the windmill. */
+/** Level 4: the green again, but out the side gap to a cup by the windmill. */
 const outOfBounds: Level = {
   name: "Out of Bounds",
   slot: [
     `                                                          `,
     `                                                          `,
-    `    _______________________    _______________________    `,
+    `    __________________________________________________    `,
     `   /                                                  \\   `,
     `  |                                                    |  `,
     `  |                                                    |  `,
@@ -23,13 +23,13 @@ const outOfBounds: Level = {
     `  |                                                    |  `,
     `  |                                                    |  `,
     `  |                                                    |  `,
-    `  |                                                    |  `,
-    `  |                                                    |  `,
-    `  |                                                    |  `,
-    `  |                                                    |  `,
-    `  |                                                    |  `,
+    `                                                       |  `,
+    `                                                       |  `,
+    `                                                       |  `,
+    `                                                       |  `,
     `  |                                                    |  `,
     `   \\__________________________________________________/   `,
+    `                                                          `,
   ],
   // Right above the windmill, which turns in the next level.
   cup: {
