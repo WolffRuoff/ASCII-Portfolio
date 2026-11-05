@@ -5,8 +5,8 @@ import type { Level } from "./types";
 /** The words on the left, top, right and bottom blades before turning. */
 const WORDS: Word[] = ["git", "git", "hub", "hub"];
 
-/** Frames drawn between each quarter turn. */
-const STEPS = 3;
+/** Frames per quarter turn: the words, then slanted on the way round. */
+const STEPS = 5;
 
 /** Fills the inside of blades: it looks blank but the ball can't pass. */
 const SOLID = "\u00a0";
@@ -15,6 +15,9 @@ const SOLID = "\u00a0";
 function turned(quarters: number): Blades {
   return WORDS.map((_, i) => WORDS[(i - quarters + 4) % 4]) as Blades;
 }
+
+/** Least a slanted top or bottom blade moves, so putts can pass the hub. */
+const CLEAR = 4;
 
 /** Each letter's first and last column in "Git" and "Hub" across. */
 const LETTERS: Record<Word, [number, number][]> = {
@@ -50,7 +53,8 @@ function tilted(quarters: number, degrees: number): string[] {
   };
   art.forEach((line, row) => {
     if (row >= HUB.row && row < HUB.row + HUB.height) return;
-    const shift = Math.round((row * 2 + 1 - cy) * slope);
+    const lean = (row * 2 + 1 - cy) * slope;
+    const shift = Math.sign(lean) * Math.max(CLEAR, Math.round(Math.abs(lean)));
     [...line].forEach((ch, col) => {
       if (ch !== " ") put(row, col - shift, ch);
     });
@@ -79,8 +83,12 @@ function tilted(quarters: number, degrees: number): string[] {
 /** One full turn: each quarter's words, then turned towards the next. */
 const FRAMES = [0, 1, 2, 3].flatMap((quarter) => [
   githubWindmill(turned(quarter), SOLID),
-  tilted(quarter, 90 / STEPS),
-  tilted(quarter + 1, -90 / STEPS),
+  ...Array.from({ length: STEPS - 1 }, (_, i) => {
+    const degrees = (90 * (i + 1)) / STEPS;
+    return degrees <= 45
+      ? tilted(quarter, degrees)
+      : tilted(quarter + 1, degrees - 90);
+  }),
 ]);
 
 /** Rows from the windmill's top to just below its bottom blade. */
