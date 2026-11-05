@@ -103,12 +103,15 @@ test("each level after the first starts where the last cup was", () => {
 });
 
 test.each(LAYOUTS)(
-  "%s: windmill pen only opens under a Git blade",
+  "%s: windmill pen is shut while Hub is the bottom blade",
   (_, width, narrow) => {
     const index = LEVELS.findIndex((level) => level.name === "Windmill");
+    const level = LEVELS[index];
+    const quarter = level.animation!.frames.length / 4;
+    // Quarter turns put Hub, Hub, Git, Git on the bottom blade.
     const reaches = [0, 1, 2, 3].map(
-      (frame) =>
-        explore(build(LEVELS[index], LEVELS[index - 1], width, narrow, frame))
+      (turn) =>
+        explore(build(level, LEVELS[index - 1], width, narrow, turn * quarter))
           .reachesCup
     );
     expect(reaches).toEqual([false, false, true, true]);

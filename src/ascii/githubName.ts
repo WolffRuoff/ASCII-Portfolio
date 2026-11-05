@@ -24,14 +24,12 @@ const GIT_DOWN = [
 ];
 const HUB_DOWN = [
   " _____ ",
-  "|     |",
   "|_   _|",
   "|     |",
   "|_____|",
   " ____. ",
   "|    : ",
-  "|  _ . ",
-  "|    : ",
+  "|  _ : ",
   "|____. ",
   " _____ ",
   "|    _|",
@@ -41,13 +39,19 @@ const HUB_DOWN = [
 
 export type Word = "git" | "hub";
 
-/** Words on the left, top, right and bottom blades. */
-export type Blades = [Word, Word, Word, Word];
+/** Words on the left, top, right and bottom blades; null leaves one off. */
+export type Blades = [Word | null, Word | null, Word | null, Word | null];
 
 const ACROSS = { git: GIT_ACROSS, hub: HUB_ACROSS };
 const DOWN = { git: GIT_DOWN, hub: HUB_DOWN };
 const ARM_WIDTH = Math.max(GIT_ACROSS[0].length, HUB_ACROSS[0].length);
 const ARM_HEIGHT = Math.max(GIT_DOWN.length, HUB_DOWN.length);
+
+/** Blade lengths from the hub, in columns (a row counts as two). */
+export const BLADE_LENGTH = {
+  git: (GIT_ACROSS[0].length + GIT_DOWN.length * 2) / 2,
+  hub: (HUB_ACROSS[0].length + HUB_DOWN.length * 2) / 2,
+};
 
 /** The blank square the blades turn around, from the art's top-left. */
 export const HUB = {
@@ -57,23 +61,29 @@ export const HUB = {
   height: GIT_ACROSS.length,
 };
 
+/** Size of the windmill art, with room for its blades to turn. */
+export const WINDMILL = {
+  width: ARM_WIDTH * 2 + HUB.width,
+  height: ARM_HEIGHT * 2 + HUB.height,
+};
+
 /** The GitHub windmill with the given words on its blades. */
 export function githubWindmill([left, top, right, bottom]: Blades): string[] {
-  const width = ARM_WIDTH * 2 + HUB.width;
-  const height = ARM_HEIGHT * 2 + HUB.height;
-  const grid = Array.from({ length: height }, () => Array(width).fill(" "));
+  const grid = Array.from({ length: WINDMILL.height }, () =>
+    Array(WINDMILL.width).fill(" ")
+  );
   const put = (row: number, col: number, lines: string[]) =>
     lines.forEach((line, i) =>
       [...line].forEach((ch, j) => {
         if (ch !== " ") grid[row + i][col + j] = ch;
       })
     );
-  put(HUB.row, HUB.col - ACROSS[left][0].length, ACROSS[left]);
-  put(HUB.row, HUB.col + HUB.width, ACROSS[right]);
-  put(HUB.row - DOWN[top].length, HUB.col, DOWN[top]);
-  put(HUB.row + HUB.height, HUB.col, DOWN[bottom]);
+  if (left) put(HUB.row, HUB.col - ACROSS[left][0].length, ACROSS[left]);
+  if (right) put(HUB.row, HUB.col + HUB.width, ACROSS[right]);
+  if (top) put(HUB.row - DOWN[top].length, HUB.col, DOWN[top]);
+  if (bottom) put(HUB.row + HUB.height, HUB.col, DOWN[bottom]);
   return grid.map((row) => row.join(""));
 }
 
-/** "GitHub" as a windmill: "Git" on the left and top, "Hub" right and below. */
-export const githubName: string[] = githubWindmill(["git", "git", "hub", "hub"]);
+/** "Git  Hub", with blank space above and below for the windmill level. */
+export const githubName: string[] = githubWindmill(["git", null, "hub", null]);
