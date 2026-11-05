@@ -96,14 +96,18 @@ const windmill: Level = {
     {
       at: { section: "name", row: BELOW, col: HUB.col - 8 },
       lines: [
-        ` _______      ________ `,
+        ` _______       _______ `,
         `|                     |`,
         `|                     |`,
       ],
     },
   ],
-  cup: { section: "name", row: BELOW + 2, col: HUB.col + 1 },
-  flag: false,
+  // The flag stands in the middle of the opening, under the hub.
+  cup: {
+    section: "name",
+    row: BELOW + 2,
+    col: HUB.col + Math.floor(HUB.width / 2) - 1,
+  },
   animation: {
     at: { section: "name" },
     frames: FRAMES,

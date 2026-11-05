@@ -52,6 +52,4 @@ export interface Level {
   tee?: Anchor;
   /** Where the hole is (its left edge). */
   cup: Anchor;
-  /** Set false to leave out the flag where there's no room for it. */
-  flag?: boolean;
 }

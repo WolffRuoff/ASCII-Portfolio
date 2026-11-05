@@ -128,7 +128,7 @@ export function applyLevel(
   const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
   draw(cup.row, cup.col, "(_)");
-  if (withFlag && level.flag !== false) {
+  if (withFlag) {
     draw(cup.row - 2, cup.col + 1, "|>");
     draw(cup.row - 1, cup.col + 1, "|");
   } else {
