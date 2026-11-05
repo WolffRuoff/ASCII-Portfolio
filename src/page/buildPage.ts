@@ -72,6 +72,11 @@ function withMark(mark: string, art: string[]): string[] {
   return [mark + art[0].slice(1), ...art.slice(1)];
 }
 
+export interface BuildOptions {
+  /** Links the GitHub name; defaults to true. */
+  linkName?: boolean;
+}
+
 /**
  * Builds the whole page as lines of segments ({ text, href? }), and where each
  * section starts so levels can anchor to them.
@@ -79,7 +84,8 @@ function withMark(mark: string, art: string[]): string[] {
 export function buildPage(
   sizing: Sizing,
   leftBorder: string,
-  rightBorder: string
+  rightBorder: string,
+  { linkName = true }: BuildOptions = {}
 ): Page {
   const slot = BLANK_SLOT;
   const layout = new Layout(sizing, leftBorder, rightBorder);
@@ -124,15 +130,15 @@ export function buildPage(
       { lines: githubCat, href: "https://github.com/WolffRuoff" },
       {
         lines: withMark(NAME_MARK, githubName),
-        href: "https://github.com/WolffRuoff",
+        href: linkName ? "https://github.com/WolffRuoff" : undefined,
       }
     )
   );
   add(gap());
   const footer = add(footerLines(width));
 
-  const lines = rows.map((row): PageLine =>
-    typeof row === "string" ? [{ text: row }] : row
+  const lines = rows.map(
+    (row): PageLine => (typeof row === "string" ? [{ text: row }] : row)
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 

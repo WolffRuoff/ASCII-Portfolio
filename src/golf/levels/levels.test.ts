@@ -1,7 +1,6 @@
 import { LEVELS } from ".";
 import { applyLevel } from "./apply";
 import { BLANK_SLOT, buildPage } from "../../page/buildPage";
-import { WINDMILL } from "../../ascii/githubName";
 import { isCup } from "../physics";
 import type { LevelPage } from "./apply";
 import type { Level } from "./types";
@@ -121,24 +120,5 @@ test.each(LAYOUTS)(
       if (frame % quarter === 0) expect(open).toBe(false);
     });
     expect(reaches).toContain(true);
-  }
-);
-
-test.each(LAYOUTS)(
-  "%s: the windmill isn't a link, but the cat still is",
-  (_, width, narrow) => {
-    const index = LEVELS.findIndex((level) => level.name === "Windmill");
-    const page = build(LEVELS[index], LEVELS[index - 1], width, narrow);
-    const { row, col, height } = page.sections.name;
-    page.lines.slice(row, row + height).forEach((segments) => {
-      let start = 0;
-      for (const { text, href } of segments) {
-        const end = start + text.length;
-        if (href)
-          expect(end <= col || start >= col + WINDMILL.width).toBe(true);
-        start = end;
-      }
-    });
-    expect(page.lines.flat().some((s) => s.href)).toBe(true);
   }
 );

@@ -1,10 +1,10 @@
 import type { Layout } from "../layout";
 import type { PageLine } from "../buildPage";
 
-/** Lines of art that link to `href`. */
+/** Lines of art that link to `href`, if set. */
 export interface LinkedArt {
   lines: string[];
-  href: string;
+  href?: string;
 }
 
 /** One block of linked art centred, or two side by side (stacked if narrow). */

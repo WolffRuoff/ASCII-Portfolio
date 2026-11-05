@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PointerEventHandler, RefObject } from "react";
-import type { Page } from "../page/buildPage";
+import type { BuildOptions, Page } from "../page/buildPage";
 import { useTween } from "../hooks/useTween";
 import { useBall } from "./useBall";
 import { nearCup } from "./physics";
@@ -24,9 +24,12 @@ export interface Minigolf {
   onBallDown?: PointerEventHandler<HTMLElement>;
 }
 
-/** Plays the levels in order on `basePage`, moving on after each sink. */
+/**
+ * Plays the levels in order on the page `buildBase` lays out, moving on after
+ * each sink.
+ */
 export function useMinigolf(
-  basePage: Page,
+  buildBase: (options: BuildOptions) => Page,
   preRef: RefObject<HTMLPreElement>
 ): Minigolf {
   const [levelIndex, setLevelIndex] = useState(0);
@@ -37,6 +40,12 @@ export function useMinigolf(
   const level = LEVELS[levelIndex];
   const prevLevel = LEVELS[levelIndex - 1];
   const animated = Boolean(level.animation);
+  // The GitHub name isn't a link while a level moves it.
+  const linkName = level.animation?.at.section !== "name";
+  const basePage = useMemo(
+    () => buildBase({ linkName }),
+    [buildBase, linkName]
+  );
   const page = useMemo(
     () =>
       applyLevel(basePage, level, {
