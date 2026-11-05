@@ -1,7 +1,10 @@
 import type { Page, PageLine } from "../../page/buildPage";
-import { CELL_ASPECT } from "../constants";
-import type { Cell, Course } from "../physics";
-import type { Anchor, Art, Level } from "./types";
+import { CELL_ASPECT, FRAME_TIME } from "../constants";
+import type { Cell, Course, WallMotion } from "../physics";
+import type { Anchor, Art, Level, Motion } from "./types";
+
+/** One full turn, in radians. */
+const TURN = 2 * Math.PI;
 
 /** How the cup is drawn. */
 const CUP = "(_)";
@@ -23,6 +26,23 @@ export function resolveAnchor(
   const base =
     from === "center" ? page.center : from === "right" ? page.right : page.left;
   return { row: s.row + row, col: base + col };
+}
+
+/** Turns a level's wall motion into page cells and real time. */
+function resolveMotion(page: Page, motion: Motion): WallMotion {
+  switch (motion.kind) {
+    case "spin": {
+      const center = resolveAnchor(page, motion.center);
+      // How long one turn takes, in seconds.
+      const turnTime = (motion.frames * FRAME_TIME) / 1000;
+      return {
+        kind: "spin",
+        x: center.col,
+        y: center.row,
+        rate: TURN / turnTime,
+      };
+    }
+  }
 }
 
 /** Writes one character into both the lines and the grid. */
@@ -49,6 +69,8 @@ export interface ApplyLevelOptions {
   prev?: Level;
   /** Draws the flag in the cup; defaults to true. */
   withFlag?: boolean;
+  /** Which frame of the level's animation to draw. */
+  frame?: number;
   /**
    * Draws only the art within this share (0 to 1) of the way out from the tee
    * or the cup, for the level transition.
@@ -68,7 +90,7 @@ function resolveTee(page: Page, level: Level, prev?: Level): Cell {
 export function applyLevel(
   page: Page,
   level: Level,
-  { prev, withFlag = true, reveal }: ApplyLevelOptions = {}
+  { prev, withFlag = true, frame = 0, reveal }: ApplyLevelOptions = {}
 ): LevelPage {
   const lines = [...page.lines];
   const grid = [...page.grid];
@@ -95,6 +117,18 @@ export function applyLevel(
     rows.forEach((line, i) => draw(origin.row + i, origin.col, line));
   }
 
+  if (level.animation) {
+    const { at, frames } = level.animation;
+    const origin = resolveAnchor(page, at);
+    frames[frame % frames.length].forEach((line, i) =>
+      [...line].forEach((ch, j) => {
+        const col = origin.col + j;
+        if (col < page.left || col > page.right) dropped++;
+        else chars.push({ row: origin.row + i, col, ch });
+      })
+    );
+  }
+
   const tee = resolveTee(page, level, prev);
   const cup = resolveAnchor(page, level.cup);
   if (grid[tee.row]?.[tee.col] !== " ") dropped++;
@@ -117,6 +151,11 @@ export function applyLevel(
   }
   for (const { row, col, ch } of shown) setChar(lines, grid, row, col, ch);
 
-  const course = { tee, cup: { ...cup, width: CUP.length } };
+  const motion = level.animation?.motion;
+  const course = {
+    tee,
+    cup: { ...cup, width: CUP.length },
+    motion: motion && resolveMotion(page, motion),
+  };
   return { ...page, ...course, lines, grid, dropped };
 }

@@ -25,6 +25,20 @@ export interface Art {
 }
 
 /**
+ * How an animation's walls move, so they can knock the ball. A spin turns
+ * clockwise about `center`, once every `frames` frames.
+ */
+export type Motion = { kind: "spin"; center: Anchor; frames: number };
+
+/** Art that cycles through frames, each replacing every cell in its box. */
+export interface Animation {
+  at: Anchor;
+  frames: string[][];
+  /** How the walls move, for art that pushes the ball. */
+  motion?: Motion;
+}
+
+/**
  * A level is plain data. Art only draws over blank cells inside the frame,
  * so it can't cover page text, and any non-space character is a wall.
  */
@@ -35,6 +49,8 @@ export interface Level {
   slot?: string[];
   /** More art, drawn anywhere on the page. */
   art?: Art[];
+  /** Moving walls, such as a windmill. */
+  animation?: Animation;
   /**
    * Where the ball starts. Defaults to the middle of the previous level's cup;
    * the first level must set one.

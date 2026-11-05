@@ -1,7 +1,8 @@
-import { useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 import type { CSSProperties } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
+import type { BuildOptions } from "./page/buildPage";
 import { useFitSizing } from "./hooks/useFitSizing";
 import { useMinigolf } from "./golf/useMinigolf";
 
@@ -23,12 +24,13 @@ function App() {
     lineHeight: "1.1em",
   };
 
-  const basePage = useMemo(
-    () => buildPage(sizing, leftBorder, rightBorder),
+  const buildBase = useCallback(
+    (options: BuildOptions) =>
+      buildPage(sizing, leftBorder, rightBorder, options),
     [sizing, leftBorder, rightBorder]
   );
   const preRef = useRef<HTMLPreElement>(null);
-  const { page, ball, onBallDown } = useMinigolf(basePage, preRef);
+  const { page, ball, onBallDown } = useMinigolf(buildBase, preRef);
 
   return (
     <div style={appStyle}>

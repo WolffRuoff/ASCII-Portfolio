@@ -3,6 +3,7 @@ import {
   CELL_ASPECT,
   FRICTION,
   MAX_DRAG,
+  MAX_PUSH,
   MIN_DRAG,
   PIN_RADIUS,
   POWER,
@@ -14,6 +15,10 @@ import {
 const MAX_SUBSTEP = 0.3;
 /** Farthest the ball is moved to find a blank cell, in cells. */
 const SEARCH_RADIUS = 60;
+/** How far past a moving wall to look for a blank cell, in cells. */
+const PUSH_REACH = 12;
+/** Step between the cells checked past a moving wall, in cells. */
+const PUSH_STEP = 0.5;
 
 export interface Cell {
   row: number;
@@ -33,7 +38,12 @@ export interface Course {
   cup: Cup;
   /** The page's middle column, for keeping the ball in place on resize. */
   center: number;
+  /** How the course's moving walls move, if it has any. */
+  motion?: WallMotion;
 }
+
+/** A spin turns clockwise about (x, y), in cells, at `rate` radians/s. */
+export type WallMotion = { kind: "spin"; x: number; y: number; rate: number };
 
 export interface Ball {
   /** Position in cells; the integer part is the column. */
@@ -217,6 +227,62 @@ export function nearestOpen(
     }
   }
   return null;
+}
+
+/** A speed and direction, in px/s. */
+export interface Velocity {
+  vx: number;
+  vy: number;
+}
+
+/** How fast the moving walls move where the ball is. */
+export function wallVelocity(
+  ball: Ball,
+  motion: WallMotion,
+  { charWidth, lineHeight }: Metrics
+): Velocity {
+  switch (motion.kind) {
+    case "spin": {
+      // Clockwise on screen, where y points down.
+      const rx = (ball.x - motion.x) * charWidth;
+      const ry = (ball.y - motion.y) * lineHeight;
+      return { vx: -ry * motion.rate, vy: rx * motion.rate };
+    }
+  }
+}
+
+/**
+ * Knocks a ball that a moving wall now covers out ahead of the wall, at the
+ * wall's velocity.
+ */
+export function pushBall(
+  ball: Ball,
+  page: Course,
+  wall: Velocity,
+  metrics: Metrics
+): Ball {
+  const row = Math.floor(ball.y);
+  const col = Math.floor(ball.x);
+  if (ball.sunk || isOpen(page, row, col) || isCup(page, row, col)) return ball;
+  let { vx, vy } = wall;
+  const speed = Math.hypot(vx, vy);
+  if (speed > MAX_PUSH)
+    [vx, vy] = [(vx / speed) * MAX_PUSH, (vy / speed) * MAX_PUSH];
+  const stepX = vx / metrics.charWidth;
+  const stepY = vy / metrics.lineHeight;
+  const len = Math.hypot(stepX, stepY) || 1;
+  for (let d = PUSH_STEP; d <= PUSH_REACH; d += PUSH_STEP) {
+    const ahead = {
+      row: Math.floor(ball.y + (stepY / len) * d),
+      col: Math.floor(ball.x + (stepX / len) * d),
+    };
+    if (isOpen(page, ahead.row, ahead.col)) {
+      return { ...ball, ...middleOf(ahead), vx, vy, onTee: false };
+    }
+  }
+  const cell = nearestOpen(page, row, col);
+  if (!cell) return ball;
+  return { ...ball, ...middleOf(cell), vx, vy, onTee: false };
 }
 
 /** Keeps the ball's row and its offset from the page centre across a resize. */

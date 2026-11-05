@@ -63,6 +63,11 @@ export interface Page {
 /** The empty space beside the bio, where levels draw their slot art. */
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
+export interface BuildOptions {
+  /** Links the GitHub name; defaults to true. */
+  linkName?: boolean;
+}
+
 /**
  * Builds the whole page as lines of segments ({ text, href? }), and where each
  * section starts so levels can anchor to them.
@@ -70,7 +75,8 @@ export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 export function buildPage(
   sizing: Sizing,
   leftBorder: string,
-  rightBorder: string
+  rightBorder: string,
+  { linkName = true }: BuildOptions = {}
 ): Page {
   const slot = BLANK_SLOT;
   const layout = new Layout(sizing, leftBorder, rightBorder);
@@ -109,7 +115,10 @@ export function buildPage(
   const art = linkedArtLines(
     layout,
     { lines: githubCat, href: "https://github.com/WolffRuoff" },
-    { lines: githubName, href: "https://github.com/WolffRuoff" }
+    {
+      lines: githubName,
+      href: linkName ? "https://github.com/WolffRuoff" : undefined,
+    }
   );
   const buttons = add(art.lines);
   add(gap());

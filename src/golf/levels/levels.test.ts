@@ -16,11 +16,12 @@ function build(
   level: Level,
   prev: Level | undefined,
   width: number,
-  narrow: boolean
+  narrow: boolean,
+  frame = 0
 ): LevelPage {
   const sizing = { fontSize: 12, width, narrow };
   const base = buildPage(sizing, "  ||", "||  ");
-  return applyLevel(base, level, { prev });
+  return applyLevel(base, level, { prev, frame });
 }
 
 /** Cells reachable from the tee, and whether the cup is one of them. */
@@ -63,7 +64,11 @@ describe.each(CASES)("%s", (_, level, prev) => {
   });
 
   test.each(LAYOUTS)("%s: cup is reachable from tee", (_, width, narrow) => {
-    expect(explore(build(level, prev, width, narrow)).reachesCup).toBe(true);
+    const frames = level.animation?.frames.length || 1;
+    const reachable = Array.from({ length: frames }, (_, frame) =>
+      explore(build(level, prev, width, narrow, frame))
+    ).some(({ reachesCup }) => reachesCup);
+    expect(reachable).toBe(true);
   });
 
   test.each(LAYOUTS)("%s: ball can't leave the course", (_, width, narrow) => {
@@ -96,3 +101,24 @@ test("each level after the first starts where the last cup was", () => {
     expect(page.tee).toEqual({ row: last.row, col: last.col + 1 });
   });
 });
+
+test.each(LAYOUTS)(
+  "%s: windmill pen is shut while a blade is over it",
+  (_, width, narrow) => {
+    const index = LEVELS.findIndex((level) => level.name === "Windmill");
+    const level = LEVELS[index];
+    const frames = level.animation!.frames.length;
+    const reaches = Array.from(
+      { length: frames },
+      (_, frame) =>
+        explore(build(level, LEVELS[index - 1], width, narrow, frame))
+          .reachesCup
+    );
+    // Every fourth of the turn a blade points straight down.
+    const quarter = frames / 4;
+    reaches.forEach((open, frame) => {
+      if (frame % quarter === 0) expect(open).toBe(false);
+    });
+    expect(reaches).toContain(true);
+  }
+);

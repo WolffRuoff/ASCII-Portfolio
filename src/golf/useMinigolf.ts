@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PointerEventHandler, RefObject } from "react";
-import type { Page } from "../page/buildPage";
+import type { BuildOptions, Page } from "../page/buildPage";
 import { useTween } from "../hooks/useTween";
 import { useBall } from "./useBall";
 import { nearCup } from "./physics";
 import { LEVELS } from "./levels";
+import { FRAME_TIME } from "./constants";
 import { applyLevel } from "./levels/apply";
 import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
 
@@ -24,26 +25,45 @@ export interface Minigolf {
   onBallDown?: PointerEventHandler<HTMLElement>;
 }
 
-/** Plays the levels in order on `basePage`, moving on after each sink. */
+/**
+ * Plays the levels in order on the page `buildBase` lays out, moving on after
+ * each sink.
+ */
 export function useMinigolf(
-  basePage: Page,
+  buildBase: (options: BuildOptions) => Page,
   preRef: RefObject<HTMLPreElement>
 ): Minigolf {
   const [levelIndex, setLevelIndex] = useState(0);
   const [flagPulled, setFlagPulled] = useState(false);
   // Set while a level shrinks away or grows in.
   const [reveal, setReveal] = useState<Reveal | null>(null);
+  const [frame, setFrame] = useState(0);
   const level = LEVELS[levelIndex];
   const prevLevel = LEVELS[levelIndex - 1];
+  const animated = Boolean(level.animation);
+  // The GitHub name isn't a link while a level moves it.
+  const linkName = level.animation?.at.section !== "name";
+  const basePage = useMemo(
+    () => buildBase({ linkName }),
+    [buildBase, linkName]
+  );
   const page = useMemo(
     () =>
       applyLevel(basePage, level, {
         prev: prevLevel,
         withFlag: !flagPulled,
+        frame,
         reveal: reveal || undefined,
       }),
-    [basePage, level, prevLevel, flagPulled, reveal]
+    [basePage, level, prevLevel, flagPulled, frame, reveal]
   );
+
+  // Steps the level's animation, if it has one.
+  useEffect(() => {
+    if (!animated) return;
+    const id = setInterval(() => setFrame((f) => f + 1), FRAME_TIME);
+    return () => clearInterval(id);
+  }, [animated]);
   const ballState = useBall(page, preRef, levelIndex);
 
   // Flag is out while the ball is near or in the cup (set here: page uses it).
