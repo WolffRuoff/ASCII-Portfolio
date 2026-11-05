@@ -28,8 +28,11 @@ export interface Art {
 export interface Animation {
   at: Anchor;
   frames: string[][];
-  /** For art that turns clockwise: its centre and frames per full turn. */
-  spin?: { center: Anchor; frames: number };
+  /**
+   * For art that turns: its centre, frames per full turn, and false for
+   * counter-clockwise.
+   */
+  spin?: { center: Anchor; frames: number; clockwise?: boolean };
 }
 
 /**

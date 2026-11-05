@@ -34,7 +34,10 @@ export interface Course {
   cup: Cup;
   /** The page's middle column, for keeping the ball in place on resize. */
   center: number;
-  /** Where moving walls turn about, in cells, and how fast (radians/s). */
+  /**
+   * Where moving walls turn about, in cells, and how fast in radians/s:
+   * positive is clockwise on screen, negative counter-clockwise.
+   */
   spin?: { x: number; y: number; rate: number };
 }
 
@@ -235,13 +238,14 @@ export function pushBall(ball: Ball, page: Course, metrics: Metrics): Ball {
   if (!spin || ball.sunk || isOpen(page, row, col) || isCup(page, row, col)) {
     return ball;
   }
-  // Clockwise on screen, where y points down.
+  // The wall's velocity at the ball; y points down, so positive is clockwise.
   const rx = (ball.x - spin.x) * metrics.charWidth;
   const ry = (ball.y - spin.y) * metrics.lineHeight;
   let vx = -ry * spin.rate;
   let vy = rx * spin.rate;
   const speed = Math.hypot(vx, vy);
-  if (speed > MAX_PUSH) [vx, vy] = [(vx / speed) * MAX_PUSH, (vy / speed) * MAX_PUSH];
+  if (speed > MAX_PUSH)
+    [vx, vy] = [(vx / speed) * MAX_PUSH, (vy / speed) * MAX_PUSH];
   const stepX = vx / metrics.charWidth;
   const stepY = vy / metrics.lineHeight;
   const len = Math.hypot(stepX, stepY) || 1;

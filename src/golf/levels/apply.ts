@@ -152,7 +152,9 @@ export function applyLevel(
   const spin = center && {
     x: center.col,
     y: center.row,
-    rate: (2 * Math.PI * 1000) / (spinning.frames * FRAME_TIME),
+    rate:
+      ((spinning.clockwise === false ? -1 : 1) * 2 * Math.PI * 1000) /
+      (spinning.frames * FRAME_TIME),
   };
   const course = { tee, cup: { ...cup, width: 3 }, spin };
   return { ...page, ...course, lines, grid, dropped };
