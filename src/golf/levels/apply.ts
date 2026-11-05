@@ -17,11 +17,9 @@ export function resolveAnchor(
   page: Page,
   { section, row = 0, col = 0, from = "left" }: Anchor
 ): Cell {
-  if (section === "slot") {
-    const s = page.sections.slot;
-    return { row: s.row + row, col: s.col + col };
-  }
   const s = page.sections[section];
+  // The layout placed this section, so measure from its own column.
+  if ("col" in s) return { row: s.row + row, col: s.col + col };
   const base =
     from === "center" ? page.center : from === "right" ? page.right : page.left;
   return { row: s.row + row, col: base + col };

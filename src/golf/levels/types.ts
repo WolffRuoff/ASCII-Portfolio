@@ -6,11 +6,14 @@ export interface Anchor {
   section: SectionName;
   /** Rows from the section's top; negative reaches the blank lines above. */
   row?: number;
-  /** Columns from the slot's left edge, or for other sections from `from`. */
+  /**
+   * Columns from the left edge of the slot or GitHub name, or for other
+   * sections from `from`.
+   */
   col?: number;
   /**
-   * For sections other than slot: the frame's left edge, page centre or frame's
-   * right edge.
+   * For sections other than slot and name: the frame's left edge, page centre
+   * or frame's right edge.
    */
   from?: "left" | "center" | "right";
 }

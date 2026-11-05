@@ -69,11 +69,22 @@ describe.each(CASES)("%s", (_, level, prev) => {
   test.each(LAYOUTS)("%s: ball can't leave the course", (_, width, narrow) => {
     const page = build(level, prev, width, narrow);
     const slot = page.sections.slot;
+    const slotRight = slot.col + BLANK_SLOT[0].length - 1;
+    const inSlot = (row: number, col: number) =>
+      row >= slot.row &&
+      row < slot.row + slot.height &&
+      col >= slot.col &&
+      col <= slotRight;
+    // A cup outside the slot means the ball may roam the page's blank cells.
+    const bounds = inSlot(page.cup.row, page.cup.col)
+      ? inSlot
+      : (row: number, col: number) =>
+          row > page.sections.header.row &&
+          row < page.sections.footer.row + page.sections.footer.height &&
+          col >= page.left &&
+          col <= page.right;
     for (const [row, col] of explore(page).cells) {
-      expect(row).toBeGreaterThanOrEqual(slot.row);
-      expect(row).toBeLessThan(slot.row + slot.height);
-      expect(col).toBeGreaterThanOrEqual(slot.col);
-      expect(col).toBeLessThan(slot.col + BLANK_SLOT[0].length);
+      expect(bounds(row, col)).toBe(true);
     }
   });
 });
