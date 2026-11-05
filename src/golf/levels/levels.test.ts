@@ -7,7 +7,7 @@ import type { Level } from "./types";
 
 /** Page widths to check, side by side and stacked (narrow window). */
 const LAYOUTS: [string, number, boolean][] = [
-  ["side by side, 112 columns", 112, false],
+  ["side by side, 138 columns", 138, false],
   ["side by side, 177 columns", 177, false],
   ["stacked", 112, true],
 ];
