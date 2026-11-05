@@ -65,6 +65,15 @@ function spinning(degrees: number): string[] {
         if (grid[row]?.[col] !== undefined) grid[row][col] = ch;
       }
     });
+    // Spell the word down the blade: "Git" ends at the hub, "Hub" starts there.
+    const letters = [...word.toUpperCase()];
+    if (word === "git") letters.reverse();
+    letters.forEach((letter, k) => {
+      const d = start + ((end - start) * (k + 1)) / (word.length + 1);
+      const col = Math.floor(cx + d * ux);
+      const row = Math.floor((cy + d * uy) / 2);
+      if (grid[row]?.[col] === " ") grid[row][col] = letter;
+    });
     // Fill cells whose centres fall inside the blade.
     grid.forEach((cells, row) =>
       cells.forEach((ch, col) => {
