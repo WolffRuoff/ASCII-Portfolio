@@ -88,12 +88,12 @@ const FRAMES = [0, 1, 2, 3].flatMap((quarter) => [
   ),
 ]);
 
-/** Rows from the windmill's top to just below its longest blade. */
+/** Rows from the windmill's top to just below its bottom blade. */
 const BELOW = WINDMILL.height;
 
 /**
  * Level 5: the GitHub windmill spins. The pen below it opens under the bottom
- * blade, except while "Hub" is there.
+ * blade, so get in while the blades are turning past.
  */
 const windmill: Level = {
   name: "Windmill",

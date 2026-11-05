@@ -103,17 +103,22 @@ test("each level after the first starts where the last cup was", () => {
 });
 
 test.each(LAYOUTS)(
-  "%s: windmill pen is shut while Hub is the bottom blade",
+  "%s: windmill pen is shut while a blade is over it",
   (_, width, narrow) => {
     const index = LEVELS.findIndex((level) => level.name === "Windmill");
     const level = LEVELS[index];
-    const quarter = level.animation!.frames.length / 4;
-    // Quarter turns put Hub, Hub, Git, Git on the bottom blade.
-    const reaches = [0, 1, 2, 3].map(
-      (turn) =>
-        explore(build(level, LEVELS[index - 1], width, narrow, turn * quarter))
+    const frames = level.animation!.frames.length;
+    const reaches = Array.from(
+      { length: frames },
+      (_, frame) =>
+        explore(build(level, LEVELS[index - 1], width, narrow, frame))
           .reachesCup
     );
-    expect(reaches).toEqual([false, false, true, true]);
+    // Every fourth of the turn a blade points straight down.
+    const quarter = frames / 4;
+    reaches.forEach((open, frame) => {
+      if (frame % quarter === 0) expect(open).toBe(false);
+    });
+    expect(reaches).toContain(true);
   }
 );
