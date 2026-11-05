@@ -4,7 +4,7 @@ import { photoLines } from "./sections/photo";
 import { blankLines } from "./sections/blankLines";
 import { linkedArtLines } from "./sections/linkedArt";
 import { Layout, joinParts } from "./layout";
-import type { Sizing } from "./layout";
+import type { Placement, Sizing } from "./layout";
 import { githubCat } from "../ascii/githubCat";
 import { githubName } from "../ascii/githubName";
 
@@ -25,6 +25,7 @@ export type SectionName =
   | "bio"
   | "slot"
   | "buttons"
+  | "name"
   | "footer";
 
 /** Where a section starts and how many lines it takes. */
@@ -33,9 +34,16 @@ export interface Section {
   height: number;
 }
 
-/** Every section's position; the slot also records its left column. */
-export type Sections = Record<Exclude<SectionName, "slot">, Section> & {
-  slot: Section & { col: number };
+/** A section placed by layout, so it also records its left column. */
+export type PlacedSection = Section & { col: number };
+
+/** Every section's position; the slot and GitHub name record their columns. */
+export type Sections = Record<
+  Exclude<SectionName, "slot" | "name">,
+  Section
+> & {
+  slot: PlacedSection;
+  name: PlacedSection;
 };
 
 /** The laid-out page, with where each part of it is. */
@@ -98,13 +106,12 @@ export function buildPage(
   );
   const bio = add(joinParts(bioBlock.lines));
   add(gap());
-  const buttons = add(
-    linkedArtLines(
-      layout,
-      { lines: githubCat, href: "https://github.com/WolffRuoff" },
-      { lines: githubName, href: "https://github.com/WolffRuoff" }
-    )
+  const art = linkedArtLines(
+    layout,
+    { lines: githubCat, href: "https://github.com/WolffRuoff" },
+    { lines: githubName, href: "https://github.com/WolffRuoff" }
   );
+  const buttons = add(art.lines);
   add(gap());
   const footer = add(footerLines(width));
 
@@ -113,12 +120,12 @@ export function buildPage(
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
-  // The slot's place within the bio, as page coordinates.
-  const slotSection = {
-    row: bio.row + bioBlock.right.row,
-    col: bioBlock.right.col,
-    height: slot.length,
-  };
+  // Turns a block's placement within its section into page coordinates.
+  const placed = (
+    section: Section,
+    { row, col }: Placement,
+    art: string[]
+  ): PlacedSection => ({ row: section.row + row, col, height: art.length });
 
   return {
     lines,
@@ -129,7 +136,8 @@ export function buildPage(
       bio,
       buttons,
       footer,
-      slot: slotSection,
+      slot: placed(bio, bioBlock.right, slot),
+      name: placed(buttons, art.right, githubName),
     },
     left: leftBorder.length,
     right: width - rightBorder.length - 1,

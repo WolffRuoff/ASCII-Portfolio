@@ -17,8 +17,8 @@ export function resolveAnchor(
   page: Page,
   { section, row = 0, col = 0, from = "left" }: Anchor
 ): Cell {
-  if (section === "slot") {
-    const s = page.sections.slot;
+  if (section === "slot" || section === "name") {
+    const s = page.sections[section];
     return { row: s.row + row, col: s.col + col };
   }
   const s = page.sections[section];
