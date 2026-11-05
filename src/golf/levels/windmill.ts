@@ -17,7 +17,7 @@ function turned(quarters: number): Blades {
 }
 
 /** Least a slanted top or bottom blade moves, so putts can pass the hub. */
-const CLEAR = 4;
+const CLEAR = 3;
 
 /** Each letter's first and last column in "Git" and "Hub" across. */
 const LETTERS: Record<Word, [number, number][]> = {
