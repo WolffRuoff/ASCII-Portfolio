@@ -4,6 +4,7 @@ import { photoLines } from "./sections/photo";
 import { blankLines } from "./sections/blankLines";
 import { linkedArtLines } from "./sections/linkedArt";
 import { Layout, joinParts } from "./layout";
+import type { Placement } from "./layout";
 import type { Sizing } from "./layout";
 import { githubCat } from "../ascii/githubCat";
 import { githubName } from "../ascii/githubName";
@@ -63,15 +64,6 @@ export interface Page {
 /** The empty space beside the bio, where levels draw their slot art. */
 export const BLANK_SLOT: string[] = Array(25).fill(" ".repeat(58));
 
-// Marks for the slot's and name's top-left cells, found again after layout.
-const SLOT_MARK = "\u0001";
-const NAME_MARK = "\u0002";
-
-/** Puts `mark` over the first character of some art. */
-function withMark(mark: string, art: string[]): string[] {
-  return [mark + art[0].slice(1), ...art.slice(1)];
-}
-
 export interface BuildOptions {
   /** Links the GitHub name; defaults to true. */
   linkName?: boolean;
@@ -102,38 +94,34 @@ export function buildPage(
   add(gap());
   const photo = add(photoLines(layout));
   add(gap());
-  const bio = add(
-    joinParts(
-      layout.sideBySide(
-        [
-          "Hello welcome to my page!                                       ",
-          "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
-          "entire website is responsive and dynamically made with ASCII    ",
-          "characters. Try resizing and copying the page.                  ",
-          "I hope you enjoy!                                               ",
-          "                                                                ",
-          "To tell you a bit more about me, I have a Master of Science     ",
-          "from Columbia University and a Bachelor of Science in Computer  ",
-          "Science and Business Administration from Muhlenberg College. I'm",
-          "a third degree Black-Belt in karate and enjoy singing, playing  ",
-          "boardgames, coding, and bookbinding in my free time.            ",
-        ],
-        withMark(SLOT_MARK, slot),
-        true
-      )
-    )
+  const bioBlock = layout.sideBySide(
+    [
+      "Hello welcome to my page!                                       ",
+      "My name is Ethan Ruoff and I am a Team Lead at Klaviyo. This    ",
+      "entire website is responsive and dynamically made with ASCII    ",
+      "characters. Try resizing and copying the page.                  ",
+      "I hope you enjoy!                                               ",
+      "                                                                ",
+      "To tell you a bit more about me, I have a Master of Science     ",
+      "from Columbia University and a Bachelor of Science in Computer  ",
+      "Science and Business Administration from Muhlenberg College. I'm",
+      "a third degree Black-Belt in karate and enjoy singing, playing  ",
+      "boardgames, coding, and bookbinding in my free time.            ",
+    ],
+    slot,
+    true
   );
+  const bio = add(joinParts(bioBlock.lines));
   add(gap());
-  const buttons = add(
-    linkedArtLines(
-      layout,
-      { lines: githubCat, href: "https://github.com/WolffRuoff" },
-      {
-        lines: withMark(NAME_MARK, githubName),
-        href: linkName ? "https://github.com/WolffRuoff" : undefined,
-      }
-    )
+  const art = linkedArtLines(
+    layout,
+    { lines: githubCat, href: "https://github.com/WolffRuoff" },
+    {
+      lines: githubName,
+      href: linkName ? "https://github.com/WolffRuoff" : undefined,
+    }
   );
+  const buttons = add(art.lines);
   add(gap());
   const footer = add(footerLines(width));
 
@@ -142,19 +130,12 @@ export function buildPage(
   );
   const grid = lines.map((segments) => segments.map((s) => s.text).join(""));
 
-  // Finds a mark, then puts back the character it replaced.
-  const unmark = (mark: string, art: string[]): PlacedSection => {
-    const row = grid.findIndex((line) => line.includes(mark));
-    const col = grid[row].indexOf(mark);
-    lines[row] = lines[row].map((s) => ({
-      ...s,
-      text: s.text.replace(mark, art[0][0]),
-    }));
-    grid[row] = grid[row].replace(mark, art[0][0]);
-    return { row, col, height: art.length };
-  };
-  const slotSection = unmark(SLOT_MARK, slot);
-  const nameSection = unmark(NAME_MARK, githubName);
+  // Turns a block's placement within its section into page coordinates.
+  const placed = (
+    section: Section,
+    { row, col }: Placement,
+    art: string[]
+  ): PlacedSection => ({ row: section.row + row, col, height: art.length });
 
   return {
     lines,
@@ -165,8 +146,8 @@ export function buildPage(
       bio,
       buttons,
       footer,
-      slot: slotSection,
-      name: nameSection,
+      slot: placed(bio, bioBlock.right, slot),
+      name: placed(buttons, art.right, githubName),
     },
     left: leftBorder.length,
     right: width - rightBorder.length - 1,
