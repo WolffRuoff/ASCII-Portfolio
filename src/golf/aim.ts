@@ -6,9 +6,21 @@ import type { Ball, Course, Metrics } from "./physics";
 export interface AimCell {
   row: number;
   col: number;
-  /** How far the dot sits from the cell's middle, in cells. */
-  dx: number;
-  dy: number;
+  char: string;
+}
+
+// Braille dot bits by [row][column] within a cell's 4x2 grid.
+const BRAILLE_DOTS = [
+  [0x01, 0x08],
+  [0x02, 0x10],
+  [0x04, 0x20],
+  [0x40, 0x80],
+];
+
+/** The Braille character with one dot nearest (x, y) in its cell, 0 to 1. */
+function brailleDot(x: number, y: number): string {
+  const bit = BRAILLE_DOTS[Math.min(3, Math.floor(y * 4))][x < 0.5 ? 0 : 1];
+  return String.fromCharCode(0x2800 + bit);
 }
 
 /**
@@ -37,7 +49,7 @@ export function aimLine(
     const row = Math.floor(y);
     const col = Math.floor(x);
     if (!isOpen(page, row, col)) break;
-    cells.push({ row, col, dx: x - col - 0.5, dy: y - row - 0.5 });
+    cells.push({ row, col, char: brailleDot(x - col, y - row) });
   }
   return cells;
 }

@@ -4,7 +4,6 @@ import type { PageLine, Segment } from "../page/buildPage";
 import type { AimCell } from "../golf/aim";
 
 const BALL = "\u25CB";
-const AIM_DOT = "\u00B7";
 
 /** A segment as a link if it has an href, otherwise a span. */
 function renderSegment(segment: Segment, children: ReactNode, key: string) {
@@ -32,13 +31,11 @@ interface LineProps {
 const Line = memo(({ segments, ballCol, aim, onBallDown, newline }: LineProps) => {
   // What to draw in place of the page's text, by column.
   const marks = new Map<number, ReactElement>();
-  for (const { col, dx, dy } of aim) {
-    // Nudged off the grid so the dots follow the true line.
-    const translate = `calc(${dx} * 1ch) calc(${dy} * 1lh)`;
+  for (const { col, char } of aim) {
     marks.set(
       col,
-      <span key={`aim${col}`} className="golf-aim" style={{ translate }}>
-        {AIM_DOT}
+      <span key={`aim${col}`} className="golf-aim">
+        {char}
       </span>
     );
   }

@@ -47,16 +47,20 @@ describe("aimLine", () => {
   });
 
 
-  it("nudges each dot onto the true line", () => {
+  it("places each Braille dot where the true line crosses its cell", () => {
     const cells = aimLine(ball, page, MAX_DRAG, -MAX_DRAG / 4, metrics);
-    expect(cells.some((c) => c.dy !== 0)).toBe(true);
+    const chars = new Set(cells.map((c) => c.char));
+    expect(chars.size).toBeGreaterThan(1);
     for (const c of cells) {
-      const y = c.row + 0.5 + c.dy;
-      const x = c.col + 0.5 + c.dx;
-      // Down-left of the ball, on a line with the drag's slope in px.
-      expect(((y - ball.y) * 20) / ((x - ball.x) * 10)).toBeCloseTo(-0.25);
-      expect(Math.abs(c.dx)).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(c.dy)).toBeLessThanOrEqual(0.5);
+      const bits = c.char.charCodeAt(0) - 0x2800;
+      // Exactly one dot.
+      expect(bits > 0 && (bits & (bits - 1)) === 0).toBe(true);
     }
+  });
+
+  it("keeps a flat shot's dots at one height", () => {
+    const cells = aimLine(ball, page, -MAX_DRAG, 0, metrics);
+    // The ball sits mid-cell, so every dot is in the grid's third row.
+    expect(cells.every((c) => c.char === "\u2804" || c.char === "\u2820")).toBe(true);
   });
 });
