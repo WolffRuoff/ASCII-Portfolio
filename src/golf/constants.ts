@@ -21,3 +21,5 @@ export const PIN_RADIUS = 8;
 export const CELL_ASPECT = 2;
 /** How long each frame of a level's animation shows, in ms. */
 export const FRAME_TIME = 200;
+/** Length of the aim line at full power, in columns. */
+export const AIM_LENGTH = 12;

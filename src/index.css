@@ -30,3 +30,8 @@ a {
     transform: translate(-50%, -50%);
   }
 }
+
+.golf-aim {
+  opacity: 0.6;
+  pointer-events: none;
+}

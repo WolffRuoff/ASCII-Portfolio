@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   PointerEvent as ReactPointerEvent,
   PointerEventHandler,
@@ -13,15 +20,28 @@ import {
   wallVelocity,
 } from "./physics";
 import type { Ball, Course, Metrics } from "./physics";
+import { aimLine } from "./aim";
+import type { AimCell } from "./aim";
 
 export interface BallState {
   sunk: boolean;
   /** The ball's cell; row is -1 once it's sunk. */
   row: number;
   col: number;
+  /** The aim line while a putt is being lined up. */
+  aim: AimCell[];
   /** Starts a drag to aim a putt. */
   onPointerDown: PointerEventHandler<HTMLElement>;
 }
+
+/** A drag in progress: how far from the ball it is, in px. */
+interface Drag {
+  dx: number;
+  dy: number;
+  metrics: Metrics;
+}
+
+const NO_AIM: AimCell[] = [];
 
 /** Character width and line height of the page, in px. */
 function measureCell(pre: HTMLElement | null): Metrics {
@@ -39,6 +59,8 @@ export function useBall(
   levelIndex: number
 ): BallState {
   const [ball, setBall] = useState(() => ballOnTee(page));
+  // The current drag in px, while aiming.
+  const [drag, setDrag] = useState<Drag | null>(null);
   const ballRef = useRef(ball);
   const pageRef = useRef(page);
   const levelRef = useRef(levelIndex);
@@ -104,13 +126,23 @@ export function useBall(
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
 
+      const metrics = measureCell(preRef.current);
+      setDrag({ dx: e.clientX - cx, dy: e.clientY - cy, metrics });
+
+      const onMove = (ev: PointerEvent) =>
+        setDrag({ dx: ev.clientX - cx, dy: ev.clientY - cy, metrics });
+      const stop = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", stop);
+        setDrag(null);
+      };
       const swallowClick = (ev: MouseEvent) => {
         ev.preventDefault();
         ev.stopPropagation();
       };
       const onUp = (ev: PointerEvent) => {
-        window.removeEventListener("pointerup", onUp);
-        window.removeEventListener("pointercancel", onCancel);
+        stop();
         // Stops a release over a link from following it.
         window.addEventListener("click", swallowClick, true);
         setTimeout(() => window.removeEventListener("click", swallowClick, true));
@@ -120,20 +152,24 @@ export function useBall(
         commit({ ...ballRef.current, ...v, onTee: false });
         animate();
       };
-      const onCancel = () => {
-        window.removeEventListener("pointerup", onUp);
-        window.removeEventListener("pointercancel", onCancel);
-      };
+      window.addEventListener("pointermove", onMove);
       window.addEventListener("pointerup", onUp);
-      window.addEventListener("pointercancel", onCancel);
+      window.addEventListener("pointercancel", stop);
     },
     [preRef, animate, commit]
+  );
+
+  const aim = useMemo(
+    () =>
+      drag ? aimLine(ball, page, drag.dx, drag.dy, drag.metrics) : NO_AIM,
+    [ball, page, drag]
   );
 
   return {
     sunk: ball.sunk,
     row: ball.sunk ? -1 : Math.floor(ball.y),
     col: Math.floor(ball.x),
+    aim,
     onPointerDown,
   };
 }

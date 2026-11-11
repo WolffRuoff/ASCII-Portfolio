@@ -1,10 +1,13 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 import Line from "./components/Line";
 import { buildPage } from "./page/buildPage";
 import type { BuildOptions } from "./page/buildPage";
 import { useFitSizing } from "./hooks/useFitSizing";
 import { useMinigolf } from "./golf/useMinigolf";
+import type { AimCell } from "./golf/aim";
+
+const NO_AIM: AimCell[] = [];
 
 function App() {
   const photoWidth = 101;
@@ -30,7 +33,13 @@ function App() {
     [sizing, leftBorder, rightBorder]
   );
   const preRef = useRef<HTMLPreElement>(null);
-  const { page, ball, onBallDown } = useMinigolf(buildBase, preRef);
+  const { page, ball, aim, onBallDown } = useMinigolf(buildBase, preRef);
+  // The aim line's cells, grouped by row so untouched rows keep their props.
+  const aimByRow = useMemo(() => {
+    const rows = new Map<number, AimCell[]>();
+    for (const cell of aim) rows.set(cell.row, [...(rows.get(cell.row) || []), cell]);
+    return rows;
+  }, [aim]);
 
   return (
     <div style={appStyle}>
@@ -40,6 +49,7 @@ function App() {
             key={row}
             segments={segments}
             ballCol={row === ball.row ? ball.col : -1}
+            aim={aimByRow.get(row) || NO_AIM}
             onBallDown={onBallDown}
             newline={row < page.lines.length - 1}
           />
