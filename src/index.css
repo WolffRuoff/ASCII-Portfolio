@@ -32,6 +32,9 @@ a {
 }
 
 .golf-aim {
+  display: inline-block;
+  /* Keeps the cell width when the glyph comes from a fallback font. */
+  width: 1ch;
   opacity: 0.6;
   pointer-events: none;
 }

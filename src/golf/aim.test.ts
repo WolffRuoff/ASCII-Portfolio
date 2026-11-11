@@ -31,7 +31,7 @@ describe("aimLine", () => {
   it("points opposite the drag", () => {
     const cells = aimLine(ball, page, -MAX_DRAG / 2, 0, metrics);
     expect(cells.length).toBeGreaterThan(0);
-    expect(cells.every((c) => c.row === 3 && c.col > 10 && c.char === "-")).toBe(true);
+    expect(cells.every((c) => c.row === 3 && c.col > 10)).toBe(true);
   });
 
   it("grows with the drag up to full power", () => {
@@ -44,11 +44,19 @@ describe("aimLine", () => {
   it("stops at a wall", () => {
     const cells = aimLine(ball, page, 0, MAX_DRAG, metrics);
     expect(cells.map((c) => c.row)).toEqual([2, 1]);
-    expect(cells.every((c) => c.char === "|")).toBe(true);
   });
 
-  it("uses a slash for diagonals", () => {
-    expect(aimLine(ball, page, 50, -50, metrics)[0].char).toBe("/");
-    expect(aimLine(ball, page, 50, 50, metrics)[0].char).toBe("\\");
+
+  it("nudges each dot onto the true line", () => {
+    const cells = aimLine(ball, page, MAX_DRAG, -MAX_DRAG / 4, metrics);
+    expect(cells.some((c) => c.dy !== 0)).toBe(true);
+    for (const c of cells) {
+      const y = c.row + 0.5 + c.dy;
+      const x = c.col + 0.5 + c.dx;
+      // Down-left of the ball, on a line with the drag's slope in px.
+      expect(((y - ball.y) * 20) / ((x - ball.x) * 10)).toBeCloseTo(-0.25);
+      expect(Math.abs(c.dx)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(c.dy)).toBeLessThanOrEqual(0.5);
+    }
   });
 });
