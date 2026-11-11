@@ -8,6 +8,7 @@ import { LEVELS } from "./levels";
 import { FRAME_TIME } from "./constants";
 import { applyLevel } from "./levels/apply";
 import type { ApplyLevelOptions, LevelPage } from "./levels/apply";
+import type { AimCell } from "./aim";
 
 // Level transition timings, in ms.
 const SINK_PAUSE = 400;
@@ -21,6 +22,8 @@ export interface Minigolf {
   page: LevelPage;
   /** Where to draw the ball; row is -1 once it's sunk. */
   ball: { row: number; col: number };
+  /** The aim line while the player drags back from the ball. */
+  aim: AimCell[];
   /** Left out while the ball can't be hit. */
   onBallDown?: PointerEventHandler<HTMLElement>;
 }
@@ -93,6 +96,7 @@ export function useMinigolf(
   return {
     page,
     ball: { row, col },
+    aim: ballState.aim,
     onBallDown: reveal ? undefined : ballState.onPointerDown,
   };
 }
